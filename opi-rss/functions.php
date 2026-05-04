@@ -38,6 +38,7 @@ register_activation_hook( __FILE__, 'opirss_activate' );
 register_deactivation_hook( __FILE__, 'opirss_deactivate' );
 
 function opirss_activate(): void {
+    require_once OPIRSS_PATH . 'includes/database.php';
     opirss_create_tables();
     if ( ! wp_next_scheduled( 'opirss_fetch_feeds' ) ) {
         wp_schedule_event( time(), 'thirty_minutes', 'opirss_fetch_feeds' );
