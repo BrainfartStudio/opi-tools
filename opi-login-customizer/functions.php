@@ -19,3 +19,9 @@ add_action( 'plugins_loaded', function() {
     require_once OPILOGIN_PATH . 'includes/class-opi-login.php';
     OPI_Login::init();
 }, 5 );
+
+register_uninstall_hook( __FILE__, 'opilogin_uninstall' );
+
+function opilogin_uninstall(): void {
+    delete_option( OPI_Login::OPTION_KEY );
+}

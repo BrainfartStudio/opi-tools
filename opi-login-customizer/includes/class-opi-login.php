@@ -22,8 +22,24 @@ class OPI_Login {
             'opi-login',
             'Login Customizer',
             OPILOGIN_VERSION,
-            [ __CLASS__, 'render_page' ]
+            [ __CLASS__, 'render_page' ],
+            'opi-tools',
+            [ __CLASS__, 'health_check' ]
         );
+    }
+
+    public static function health_check(): array {
+        $s = OPI_Login_Settings::get();
+
+        if ( empty( $s['logo_id'] ) && empty( $s['header_text'] ) ) {
+            return [
+                'severity'   => 'warn',
+                'message'    => 'Login Customizer: no logo or header text set.',
+                'action_url' => admin_url( 'admin.php?page=opi-login' ),
+            ];
+        }
+
+        return [ 'severity' => 'ok', 'message' => '' ];
     }
 
     public static function enqueue_styles(): void {
