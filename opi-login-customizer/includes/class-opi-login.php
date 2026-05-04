@@ -10,6 +10,7 @@ class OPI_Login {
     public static function init(): void {
         require_once OPILOGIN_PATH . 'includes/class-opi-login-settings.php';
 
+        add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_admin_scripts' ] );
         add_action( 'opi_tools_register_plugins', [ __CLASS__, 'register_with_core' ] );
         add_action( 'login_enqueue_scripts',       [ __CLASS__, 'enqueue_styles' ] );
         add_filter( 'login_headerurl',             [ __CLASS__, 'header_url' ] );
@@ -81,5 +82,18 @@ class OPI_Login {
 
     public static function render_page(): void {
         require_once OPILOGIN_PATH . 'includes/views/settings-page.php';
+    }
+
+    public static function enqueue_admin_scripts( string $hook ): void {
+        if ( $hook !== 'opi-tools_page_opi-login' ) return;
+
+        wp_enqueue_media();
+        wp_enqueue_script(
+            'opilogin-admin',
+            OPILOGIN_URL . 'assets/login-admin.js',
+            [],
+            OPILOGIN_VERSION,
+            true
+        );
     }
 }
