@@ -8,14 +8,11 @@ class OPI_Tools {
     private static array $plugins = [];
 
     public static function init(): void {
-        add_action( 'admin_menu', [ __CLASS__, 'register_menu' ] );
+    require_once OPITOOLS_PATH . 'includes/class-opi-settings.php';
+    OPI_Settings::init();
 
-        /**
-         * Sub-plugins register themselves on 'opi_tools_register_plugins'.
-         * They call OPI_Tools::register_plugin() from their hook callback.
-         * Priority 5 so registration happens before the menu is built.
-         */
-        do_action( 'opi_tools_register_plugins' );
+    add_action( 'admin_menu', [ __CLASS__, 'register_menu' ] );
+    do_action( 'opi_tools_register_plugins' );
     }
 
     /**
@@ -43,28 +40,36 @@ class OPI_Tools {
     }
 
     public static function register_menu(): void {
-        add_menu_page(
-            'OPI Tools',
-            'OPI Tools',
-            'manage_options',
-            'opi-tools',
-            [ __CLASS__, 'render_dashboard' ],
-            'dashicons-admin-tools',
-            30
-        );
+    add_menu_page(
+        'OPI Tools',
+        'OPI Tools',
+        'manage_options',
+        'opi-tools',
+        [ __CLASS__, 'render_dashboard' ],
+        'dashicons-admin-tools',
+        30
+    );
 
-        // Register a submenu page for each sub-plugin.
-        foreach ( self::$plugins as $slug => $plugin ) {
-            add_submenu_page(
-                $plugin['menu_parent'],
-                $plugin['label'],
-                $plugin['label'],
-                'manage_options',
-                $slug,
-                $plugin['page_cb']
-            );
-        }
+    add_submenu_page(
+        'opi-tools',
+        'Theme Settings',
+        'Theme Settings',
+        'manage_options',
+        'opi-tools-theme',
+        fn() => require_once OPITOOLS_PATH . 'includes/views/settings-theme.php'
+    );
+
+    foreach ( self::$plugins as $slug => $plugin ) {
+        add_submenu_page(
+            $plugin['menu_parent'],
+            $plugin['label'],
+            $plugin['label'],
+            'manage_options',
+            $slug,
+            $plugin['page_cb']
+        );
     }
+}
 
     public static function render_dashboard(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
