@@ -76,10 +76,29 @@ class OPI_Discord {
 
         if ( empty( $posts ) ) return 0;
 
-        $ids = array_map( fn( $p ) => $p->ID, $posts );
-        OPI_Discord_Queue::enqueue( $ids );
+        $settings = self::get_settings();
+        if ( empty( $settings['webhook_url'] ) ) return 0;
 
-        return count( $ids );
+        foreach ( $posts as $post ) {
+            $payload = [
+                'embeds' => [[
+                    'title'       => html_entity_decode( get_the_title( $post ), ENT_QUOTES ),
+                    'url'         => get_permalink( $post ),
+                    'description' => $settings['show_excerpt']
+                        ? html_entity_decode( get_the_excerpt( $post ), ENT_QUOTES )
+                        : '',
+                    'color'       => 16752293,
+                ]]
+            ];
+
+            wp_remote_post( $settings['webhook_url'], [
+                'headers'  => [ 'Content-Type' => 'application/json' ],
+                'body'     => wp_json_encode( $payload ),
+                'blocking' => false,
+            ]);
+        }
+
+        return count( $posts );
     }
 
     public static function render_page(): void {
