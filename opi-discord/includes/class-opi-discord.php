@@ -10,6 +10,9 @@ class OPI_Discord {
     public static function init(): void {
         add_action( 'opi_tools_register_plugins', [ __CLASS__, 'register_with_core' ] );
         add_action( 'transition_post_status',     [ __CLASS__, 'on_publish' ], 10, 3 );
+
+        require_once OPIDISCORD_PATH . 'includes/class-opi-discord-queue.php';
+        OPI_Discord_Queue::init();
     }
 
     public static function register_with_core(): void {
@@ -64,5 +67,26 @@ class OPI_Discord {
 
     public static function render_page(): void {
         echo '<div class="wrap"><h1>OPI Discord</h1><p>Settings coming soon.</p></div>';
+    }
+
+    public static function queue_all_posts(): int {
+        $posts = get_posts([
+            'numberposts' => -1,
+            'post_status' => 'publish',
+            'post_type'   => 'post',
+            'orderby'     => 'date',
+            'order'       => 'ASC',
+        ]);
+
+        if ( empty( $posts ) ) return 0;
+
+        $ids = array_map( fn( $p ) => $p->ID, $posts );
+        OPI_Discord_Queue::enqueue( $ids );
+
+        return count( $ids );
+    }
+
+    public static function render_page(): void {
+        require_once OPIDISCORD_PATH . 'includes/views/settings-page.php';
     }
 }
