@@ -15,10 +15,8 @@ define( 'OPITOOLS_VERSION', '1.0.0' );
 define( 'OPITOOLS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'OPITOOLS_URL', plugin_dir_url( __FILE__ ) );
 
-/**
- * Main bootstrap — runs on plugins_loaded so sub-plugins
- * have a chance to register before the menu is built.
- */
+require_once OPITOOLS_PATH . 'vendor/autoload.php';
+
 add_action( 'plugins_loaded', function() {
     require_once OPITOOLS_PATH . 'includes/class-opi-tools.php';
     OPI_Tools::init();
