@@ -65,10 +65,6 @@ class OPI_Discord {
         self::send( $post );
     }
 
-    public static function render_page(): void {
-        echo '<div class="wrap"><h1>OPI Discord</h1><p>Settings coming soon.</p></div>';
-    }
-
     public static function queue_all_posts(): int {
         $posts = get_posts([
             'numberposts' => -1,
