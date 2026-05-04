@@ -8,11 +8,14 @@ class OPI_Tools {
     private static array $plugins = [];
 
     public static function init(): void {
-    require_once OPITOOLS_PATH . 'includes/class-opi-settings.php';
-    OPI_Settings::init();
+        require_once OPITOOLS_PATH . 'includes/class-opi-settings.php';
+        require_once OPITOOLS_PATH . 'includes/class-opi-updater.php';
 
-    add_action( 'admin_menu', [ __CLASS__, 'register_menu' ] );
-    do_action( 'opi_tools_register_plugins' );
+        OPI_Settings::init();
+        OPI_Updater::init();
+
+        add_action( 'admin_menu', [ __CLASS__, 'register_menu' ] );
+        do_action( 'opi_tools_register_plugins' );
     }
 
     /**

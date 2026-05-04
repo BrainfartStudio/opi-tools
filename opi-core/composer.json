@@ -1,0 +1,12 @@
+{
+    "name": "opi/opi-core",
+    "description": "OPI Tools Core framework",
+    "require": {
+        "yahnis-elsts/plugin-update-checker": "^5.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "OPI\\Core\\": "src/"
+        }
+    }
+}
