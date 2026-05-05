@@ -7,6 +7,7 @@ class OPI_Bluesky_Scheduler {
 
     public static function init(): void {
         add_action( 'opi_bluesky_process',  [ __CLASS__, 'process_due_posts' ] );
+        add_action( 'opi_bluesky_process',  [ 'OPI_Bluesky_Category_Scheduler', 'process_slot' ] );
         add_filter( 'cron_schedules',       [ __CLASS__, 'add_cron_interval' ] );
     }
 
@@ -58,7 +59,6 @@ class OPI_Bluesky_Scheduler {
     }
 
     private static function handle_repost( string $ref_uri, string $ref_cid, string $content ): array|\WP_Error {
-        // If a CID isn't stored, resolve it from the URI.
         if ( ! $ref_cid && $ref_uri ) {
             $resolved = OPI_Bluesky_API::resolve_post( self::normalize_uri( $ref_uri ) );
             if ( is_wp_error( $resolved ) ) {
@@ -66,12 +66,6 @@ class OPI_Bluesky_Scheduler {
             }
             $ref_uri = $resolved['uri'];
             $ref_cid = $resolved['cid'];
-        }
-
-        // Non-empty content = quote post (post with embed), plain = repost.
-        if ( ! empty( trim( $content ) ) ) {
-            // Quote post — not yet in API; fall through to plain repost for now.
-            // TODO: implement app.bsky.embed.record for quote posts.
         }
 
         return OPI_Bluesky_API::repost( $ref_uri, $ref_cid );
@@ -90,15 +84,12 @@ class OPI_Bluesky_Scheduler {
 
     /**
      * Convert a bsky.app URL to an at:// URI if needed.
-     * https://bsky.app/profile/user.bsky.social/post/abc123
-     * → at://user.bsky.social/app.bsky.feed.post/abc123
      */
     public static function normalize_uri( string $input ): string {
         if ( str_starts_with( $input, 'at://' ) ) {
             return $input;
         }
 
-        // Match https://bsky.app/profile/{handle_or_did}/post/{rkey}
         if ( preg_match( '#bsky\.app/profile/([^/]+)/post/([^/?#]+)#', $input, $m ) ) {
             return "at://{$m[1]}/app.bsky.feed.post/{$m[2]}";
         }

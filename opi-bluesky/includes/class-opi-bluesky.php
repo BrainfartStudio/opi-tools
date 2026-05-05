@@ -12,14 +12,15 @@ class OPI_Bluesky {
         require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-api.php';
         require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-auto-post.php';
         require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-post-type.php';
+        require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-category-scheduler.php';
         require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-scheduler.php';
         require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-list-table.php';
         require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-admin.php';
-        // require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-category-scheduler.php';
 
         OPI_Bluesky_Settings::init();
         OPI_Bluesky_Post_Type::init();
         OPI_Bluesky_Auto_Post::init();
+        OPI_Bluesky_Category_Scheduler::init();
         OPI_Bluesky_Scheduler::init();
         OPI_Bluesky_Admin::init();
 
