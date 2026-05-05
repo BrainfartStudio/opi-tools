@@ -11,7 +11,15 @@ $message = '';
 
 if ( isset( $_POST['opibluesky_save_post'] ) && check_admin_referer( 'opibluesky_post_action' ) ) {
     $content      = sanitize_textarea_field( $_POST['bsky_content'] ?? '' );
-    $scheduled_at = strtotime( sanitize_text_field( $_POST['bsky_scheduled_at'] ?? '' ) );
+    $raw_dt       = sanitize_text_field( $_POST['bsky_scheduled_at'] ?? '' );
+    $scheduled_at = 0;
+    if ( $raw_dt ) {
+        try {
+            $scheduled_at = ( new DateTime( $raw_dt, wp_timezone() ) )->getTimestamp();
+        } catch ( Exception $e ) {
+            $scheduled_at = 0;
+        }
+    }
     $type         = sanitize_key( $_POST['bsky_type'] ?? 'post' );
     $ref_uri      = sanitize_text_field( $_POST['bsky_ref_uri'] ?? '' );
     $ref_cid      = sanitize_text_field( $_POST['bsky_ref_cid'] ?? '' );
@@ -19,9 +27,9 @@ if ( isset( $_POST['opibluesky_save_post'] ) && check_admin_referer( 'opibluesky
 
     if ( ! $content || ! $scheduled_at ) {
         $message = '<div class="notice notice-error"><p>' . __( 'Content and scheduled date are required.', 'opi-bluesky' ) . '</p></div>';
+        $action  = isset( $_POST['bsky_post_id'] ) && intval( $_POST['bsky_post_id'] ) ? 'edit' : 'new';
     } else {
         if ( $edit_id ) {
-            // Update existing.
             wp_update_post( [ 'ID' => $edit_id, 'post_content' => $content ] );
             update_post_meta( $edit_id, '_bsky_scheduled_at', $scheduled_at );
             update_post_meta( $edit_id, '_bsky_type',         $type );
@@ -82,6 +90,34 @@ if ( $action === 'edit' && $post_id ) {
                 <?php $list_table->display(); ?>
             </form>
         <?php endif; ?>
+
+        <script>
+        jQuery(document).ready(function($) {
+            $(document).on('click', '.opibluesky-delete-post', function() {
+                if ( ! confirm('<?php echo esc_js( __( 'Delete this scheduled post?', 'opi-bluesky' ) ); ?>') ) {
+                    return;
+                }
+                var $btn   = $(this);
+                var postId = $btn.data('post-id');
+                $btn.prop('disabled', true);
+                $.post(opiBlueskyAdmin.ajaxUrl, {
+                    action:  'opibluesky_delete_post',
+                    nonce:   opiBlueskyAdmin.nonce,
+                    post_id: postId,
+                }, function(response) {
+                    if (response.success) {
+                        $btn.closest('tr').fadeOut(300, function() { $(this).remove(); });
+                    } else {
+                        alert('Delete failed: ' + response.data);
+                        $btn.prop('disabled', false);
+                    }
+                }).fail(function() {
+                    alert('Server error.');
+                    $btn.prop('disabled', false);
+                });
+            });
+        });
+        </script>
 
     <?php elseif ( in_array( $action, [ 'new', 'edit' ], true ) ) : ?>
 
