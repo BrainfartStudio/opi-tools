@@ -10,7 +10,21 @@ class OPI_Admin {
     public static function init(): void {
         require_once OPIADMIN_PATH . 'includes/class-opi-admin-settings.php';
 
-        add_action( 'admin_head', [ __CLASS__, 'output_css' ] );
+        add_action( 'admin_head',                  [ __CLASS__, 'output_css' ] );
+        add_action( 'opi_tools_register_plugins',  [ __CLASS__, 'register_with_core' ] );
+    }
+
+    public static function register_with_core(): void {
+        OPI_Tools::register_plugin(
+            'opi-admin',
+            'Admin Customizer',
+            OPIADMIN_VERSION,
+            [ __CLASS__, 'render_page' ]
+        );
+    }
+
+    public static function render_page(): void {
+        require_once OPIADMIN_PATH . 'includes/views/settings-page.php';
     }
 
     public static function output_css(): void {
