@@ -13,10 +13,10 @@ class OPI_Bluesky_Settings {
 
     public static function get_defaults(): array {
         return [
-            'identifier'          => '',
-            'app_password'        => '',
+            'identifier'           => '',
+            'app_password'         => '',
             'auto_post_on_publish' => true,
-            'category_slots'      => [], // groundwork for category scheduler
+            'category_slots'       => [], // groundwork for category scheduler
         ];
     }
 
@@ -31,9 +31,19 @@ class OPI_Bluesky_Settings {
     public static function sanitize( array $input ): array {
         $defaults = self::get_defaults();
 
+        $app_password = sanitize_text_field( $input['app_password'] ?? '' );
+
+        // Encrypt before storing. If blank, keep existing encrypted value.
+        if ( ! empty( $app_password ) ) {
+            $app_password = OPI_Bluesky_Crypto::encrypt( $app_password );
+        } else {
+            $existing     = self::get();
+            $app_password = $existing['app_password'] ?? '';
+        }
+
         return [
             'identifier'           => sanitize_text_field( $input['identifier'] ?? '' ),
-            'app_password'         => sanitize_text_field( $input['app_password'] ?? '' ),
+            'app_password'         => $app_password,
             'auto_post_on_publish' => ! empty( $input['auto_post_on_publish'] ),
             'category_slots'       => $input['category_slots'] ?? $defaults['category_slots'],
         ];
@@ -43,8 +53,12 @@ class OPI_Bluesky_Settings {
         return self::get()['identifier'] ?? '';
     }
 
+    /**
+     * Returns the decrypted app password for use in API calls.
+     */
     public static function get_app_password(): string {
-        return self::get()['app_password'] ?? '';
+        $encrypted = self::get()['app_password'] ?? '';
+        return OPI_Bluesky_Crypto::decrypt( $encrypted );
     }
 
     public static function is_configured(): bool {

@@ -6,6 +6,7 @@ defined( 'ABSPATH' ) || exit;
 class OPI_Bluesky {
 
     public static function init(): void {
+        require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-crypto.php';
         require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-settings.php';
         require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-auth.php';
         require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-admin.php';

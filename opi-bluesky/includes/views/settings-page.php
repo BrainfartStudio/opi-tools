@@ -7,8 +7,8 @@ $settings = OPI_Bluesky_Settings::get();
 $message  = '';
 
 if ( isset( $_POST['opibluesky_save'] ) && check_admin_referer( 'opibluesky_settings_action' ) ) {
-    $raw     = $_POST['opibluesky_settings'] ?? [];
-    $saved   = OPI_Bluesky_Settings::sanitize( $raw );
+    $raw      = $_POST['opibluesky_settings'] ?? [];
+    $saved    = OPI_Bluesky_Settings::sanitize( $raw );
     OPI_Bluesky_Settings::update( $saved );
     $settings = OPI_Bluesky_Settings::get();
 
@@ -16,7 +16,7 @@ if ( isset( $_POST['opibluesky_save'] ) && check_admin_referer( 'opibluesky_sett
     OPI_Bluesky_Auth::clear_session();
     $auth_result = OPI_Bluesky_Auth::authenticate(
         $settings['identifier'],
-        $settings['app_password']
+        OPI_Bluesky_Settings::get_app_password()
     );
 
     if ( is_wp_error( $auth_result ) ) {
@@ -35,8 +35,8 @@ if ( isset( $_POST['opibluesky_save'] ) && check_admin_referer( 'opibluesky_sett
     }
 }
 
-$session       = OPI_Bluesky_Auth::get_session();
-$is_connected  = OPI_Bluesky_Auth::is_authenticated();
+$session      = OPI_Bluesky_Auth::get_session();
+$is_connected = OPI_Bluesky_Auth::is_authenticated();
 ?>
 <div class="wrap">
     <h1><?php _e( 'Bluesky — Settings', 'opi-bluesky' ); ?></h1>
@@ -86,9 +86,10 @@ $is_connected  = OPI_Bluesky_Auth::is_authenticated();
                         type="password"
                         id="opibluesky_app_password"
                         name="opibluesky_settings[app_password]"
-                        value="<?php echo esc_attr( $settings['app_password'] ); ?>"
+                        value=""
                         class="regular-text"
                         autocomplete="new-password"
+                        placeholder="<?php echo $settings['app_password'] ? __( '(stored — leave blank to keep)', 'opi-bluesky' ) : ''; ?>"
                     >
                     <p class="description">
                         <?php _e( 'Generate an app password at ', 'opi-bluesky' ); ?>
@@ -111,8 +112,44 @@ $is_connected  = OPI_Bluesky_Auth::is_authenticated();
                     </label>
                 </td>
             </tr>
+            <tr>
+                <th scope="row"><?php _e( 'Connection', 'opi-bluesky' ); ?></th>
+                <td>
+                    <button type="button" id="opibluesky-test-connection" class="button">
+                        <?php _e( 'Test Connection', 'opi-bluesky' ); ?>
+                    </button>
+                    <span id="opibluesky-test-result" style="margin-left:10px;"></span>
+                </td>
+            </tr>
         </table>
 
         <?php submit_button( __( 'Save & Connect', 'opi-bluesky' ), 'primary', 'opibluesky_save' ); ?>
     </form>
 </div>
+
+<script>
+jQuery(document).ready(function($) {
+    $('#opibluesky-test-connection').on('click', function() {
+        var $btn    = $(this);
+        var $result = $('#opibluesky-test-result');
+
+        $btn.prop('disabled', true).text('Testing...');
+        $result.text('').css('color', '');
+
+        $.post(opiBlueskyAdmin.ajaxUrl, {
+            action: 'opibluesky_test_connection',
+            nonce:  opiBlueskyAdmin.nonce,
+        }, function(response) {
+            if (response.success) {
+                $result.css('color', '#2271b1').text('Connected as @' + response.data.handle);
+            } else {
+                $result.css('color', '#d63638').text('Failed: ' + response.data);
+            }
+        }).fail(function() {
+            $result.css('color', '#d63638').text('Server error.');
+        }).always(function() {
+            $btn.prop('disabled', false).text('Test Connection');
+        });
+    });
+});
+</script>
