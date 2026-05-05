@@ -7,8 +7,8 @@ class OPI_Bluesky {
 
     public static function init(): void {
         require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-settings.php';
+        require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-auth.php';
         require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-admin.php';
-        // require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-auth.php';
         // require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-api.php';
         // require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-auto-post.php';
         // require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-scheduler.php';
