@@ -6,9 +6,10 @@ defined( 'ABSPATH' ) || exit;
 class OPI_Bluesky_Admin {
 
     public static function init(): void {
-        add_action( 'admin_menu',                      [ __CLASS__, 'register_settings_page' ], 20 );
-        add_action( 'admin_enqueue_scripts',           [ __CLASS__, 'enqueue_scripts' ] );
+        add_action( 'admin_menu',                         [ __CLASS__, 'register_settings_page' ], 20 );
+        add_action( 'admin_enqueue_scripts',              [ __CLASS__, 'enqueue_scripts' ] );
         add_action( 'wp_ajax_opibluesky_test_connection', [ __CLASS__, 'ajax_test_connection' ] );
+        add_action( 'wp_ajax_opibluesky_delete_post',    [ __CLASS__, 'ajax_delete_post' ] );
     }
 
     public static function register_settings_page(): void {
@@ -77,5 +78,21 @@ class OPI_Bluesky_Admin {
         wp_send_json_success( [
             'handle' => $session['handle'] ?? OPI_Bluesky_Settings::get_identifier(),
         ] );
+    }
+
+    public static function ajax_delete_post(): void {
+        check_ajax_referer( 'opibluesky_nonce', 'nonce' );
+
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error( 'Insufficient permissions.' );
+        }
+
+        $post_id = intval( $_POST['post_id'] ?? 0 );
+        if ( ! $post_id ) {
+            wp_send_json_error( 'Invalid post ID.' );
+        }
+
+        OPI_Bluesky_Post_Type::delete( $post_id );
+        wp_send_json_success();
     }
 }
