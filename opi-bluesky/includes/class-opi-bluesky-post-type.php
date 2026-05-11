@@ -59,10 +59,10 @@ class OPI_Bluesky_Post_Type {
         array $category_ids = []
     ): int|\WP_Error {
         $post_id = wp_insert_post( [
-            'post_type'   => self::CPT,
-            'post_title'  => wp_trim_words( $content, 10 ) ?: __( 'Bluesky Post', 'opi-bluesky' ),
-            'post_content'=> $content,
-            'post_status' => 'publish',
+            'post_type'    => self::CPT,
+            'post_title'   => wp_trim_words( $content, 10 ) ?: __( 'Bluesky Post', 'opi-bluesky' ),
+            'post_content' => $content,
+            'post_status'  => 'publish',
         ], true );
 
         if ( is_wp_error( $post_id ) ) {
@@ -73,7 +73,7 @@ class OPI_Bluesky_Post_Type {
         update_post_meta( $post_id, '_bsky_type',         $type );
         update_post_meta( $post_id, '_bsky_ref_uri',      $ref_uri );
         update_post_meta( $post_id, '_bsky_ref_cid',      $ref_cid );
-        update_post_meta( $post_id, '_bsky_sent',         false );
+        update_post_meta( $post_id, '_bsky_sent',         '0' );
 
         if ( ! empty( $category_ids ) ) {
             wp_set_object_terms( $post_id, $category_ids, 'bsky_post_category' );
@@ -132,14 +132,15 @@ class OPI_Bluesky_Post_Type {
     }
 
     public static function mark_sent( int $post_id, string $uri = '', string $cid = '' ): void {
-        update_post_meta( $post_id, '_bsky_sent',    true );
+        update_post_meta( $post_id, '_bsky_sent',    '1' );
         update_post_meta( $post_id, '_bsky_sent_at', time() );
         update_post_meta( $post_id, '_bsky_uri',     $uri );
         update_post_meta( $post_id, '_bsky_cid',     $cid );
     }
 
     public static function mark_failed( int $post_id, string $error ): void {
-        update_post_meta( $post_id, '_bsky_failed',       true );
+        update_post_meta( $post_id, '_bsky_sent',         '0' );
+        update_post_meta( $post_id, '_bsky_failed',       '1' );
         update_post_meta( $post_id, '_bsky_failed_at',    time() );
         update_post_meta( $post_id, '_bsky_failed_error', $error );
     }
