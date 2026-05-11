@@ -70,9 +70,10 @@ class OPI_Bluesky_List_Table extends WP_List_Table {
             return '—';
         }
 
-        $date = date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $ts );
+        $format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
+        $date   = wp_date( $format, $ts );
 
-        if ( $ts <= current_time( 'timestamp' ) ) {
+        if ( $ts <= time() ) {
             return '<strong style="color:#d63638;">' . $date . '</strong><br><em>' . __( 'Sending soon…', 'opi-bluesky' ) . '</em>';
         }
 
@@ -81,7 +82,7 @@ class OPI_Bluesky_List_Table extends WP_List_Table {
 
     public function column_status( $item ): string {
         $failed = get_post_meta( $item->ID, '_bsky_failed', true );
-        if ( $failed ) {
+        if ( $failed === '1' ) {
             $error = get_post_meta( $item->ID, '_bsky_failed_error', true );
             return '<span style="color:#d63638;">'
                 . __( 'Failed', 'opi-bluesky' )

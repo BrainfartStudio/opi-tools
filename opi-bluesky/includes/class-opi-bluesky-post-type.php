@@ -25,10 +25,6 @@ class OPI_Bluesky_Post_Type {
         ] );
     }
 
-    /**
-     * Taxonomy for grouping scheduled posts into categories.
-     * Groundwork for the category scheduler feature.
-     */
     public static function register_taxonomy(): void {
         register_taxonomy( 'bsky_post_category', self::CPT, [
             'label'             => __( 'Post Categories', 'opi-bluesky' ),
@@ -44,7 +40,7 @@ class OPI_Bluesky_Post_Type {
      * Create a scheduled post record.
      *
      * @param string   $content      The text content of the Bluesky post.
-     * @param int      $scheduled_at Unix timestamp.
+     * @param int      $scheduled_at Unix timestamp (UTC).
      * @param string   $type         'post' | 'repost' | 'reply'
      * @param string   $ref_uri      For repost/reply: the target AT URI.
      * @param string   $ref_cid      For repost: the target CID.
@@ -74,6 +70,7 @@ class OPI_Bluesky_Post_Type {
         update_post_meta( $post_id, '_bsky_ref_uri',      $ref_uri );
         update_post_meta( $post_id, '_bsky_ref_cid',      $ref_cid );
         update_post_meta( $post_id, '_bsky_sent',         '0' );
+        update_post_meta( $post_id, '_bsky_failed',       '0' );
 
         if ( ! empty( $category_ids ) ) {
             wp_set_object_terms( $post_id, $category_ids, 'bsky_post_category' );
@@ -84,6 +81,7 @@ class OPI_Bluesky_Post_Type {
 
     /**
      * Get all pending (unsent) scheduled posts due on or before $before.
+     * $before must be a UTC timestamp.
      */
     public static function get_due( int $before ): array {
         return get_posts( [
@@ -111,7 +109,7 @@ class OPI_Bluesky_Post_Type {
     }
 
     /**
-     * Get all pending scheduled posts.
+     * Get all pending scheduled posts (unsent, including failed).
      */
     public static function get_pending(): array {
         return get_posts( [
