@@ -24,7 +24,6 @@ class OPI_Bluesky_Scheduler {
             return;
         }
 
-        // Use time() — stored timestamps are UTC from DateTime::getTimestamp().
         $due = OPI_Bluesky_Post_Type::get_due( time() );
 
         if ( empty( $due ) ) {
@@ -83,12 +82,15 @@ class OPI_Bluesky_Scheduler {
         return OPI_Bluesky_API::post_text( $content, $reply_ref );
     }
 
+    /**
+     * Convert a bsky.app URL to an at:// URI if needed.
+     */
     public static function normalize_uri( string $input ): string {
         if ( str_starts_with( $input, 'at://' ) ) {
             return $input;
         }
 
-        if ( preg_match( '#bsky\.app/profile/([^/]+)/post/([^/?#]+)#', $input, $m ) ) {
+        if ( preg_match( '!bsky\.app/profile/([^/]+)/post/([^/?]+)!', $input, $m ) ) {
             return "at://{$m[1]}/app.bsky.feed.post/{$m[2]}";
         }
 
