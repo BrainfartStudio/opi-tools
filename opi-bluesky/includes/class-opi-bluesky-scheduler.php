@@ -6,17 +6,10 @@ defined( 'ABSPATH' ) || exit;
 class OPI_Bluesky_Scheduler {
 
     public static function init(): void {
-        add_action( 'opi_bluesky_process',  [ __CLASS__, 'process_due_posts' ] );
-        add_action( 'opi_bluesky_process',  [ 'OPI_Bluesky_Category_Scheduler', 'process_slot' ] );
-        add_filter( 'cron_schedules',       [ __CLASS__, 'add_cron_interval' ] );
-    }
+        OPI_Cron_Helper::register_interval( 'opi_bluesky_1min', 60, __( 'Every Minute', 'opi-bluesky' ) );
 
-    public static function add_cron_interval( array $schedules ): array {
-        $schedules['opi_bluesky_1min'] = [
-            'interval' => 60,
-            'display'  => __( 'Every Minute', 'opi-bluesky' ),
-        ];
-        return $schedules;
+        add_action( 'opi_bluesky_process', [ __CLASS__, 'process_due_posts' ] );
+        add_action( 'opi_bluesky_process', [ 'OPI_Bluesky_Category_Scheduler', 'process_slot' ] );
     }
 
     public static function process_due_posts(): void {
