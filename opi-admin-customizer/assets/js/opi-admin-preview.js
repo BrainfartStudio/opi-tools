@@ -62,6 +62,18 @@
     }
 
     /**
+     * Map a sidebar_icon_filter select value to a CSS filter string.
+     */
+    function iconFilterToCss( value ) {
+        switch ( value ) {
+            case 'dark': return 'brightness(0)';
+            case 'none': return 'none';
+            case 'light':
+            default:     return 'brightness(0) invert(1)';
+        }
+    }
+
+    /**
      * Handle numeric and color inputs with data-css-var.
      */
     document.addEventListener( 'input', function( e ) {
@@ -89,7 +101,6 @@
      *
      * When a valid hex is typed into the text half of an .opi-color-pair,
      * update the sibling color input AND fire the CSS var update immediately.
-     * Core JS (opi-admin.js) handles color→text sync; this handles text→CSS var.
      */
     document.addEventListener( 'input', function( e ) {
         var el = e.target;
@@ -106,17 +117,27 @@
             return;
         }
 
-        // Sync sibling color input value.
         var colorInput = el.closest( '.opi-color-pair' ).querySelector( 'input[type="color"]' );
         if ( colorInput ) {
             colorInput.value = val;
-
-            // Apply CSS var if the color input has one.
             var cssVar = colorInput.getAttribute( 'data-css-var' );
             if ( cssVar ) {
                 setCssVar( cssVar, val );
             }
         }
+    } );
+
+    /**
+     * Handle third-party icon filter select.
+     */
+    document.addEventListener( 'change', function( e ) {
+        var el = e.target;
+
+        if ( el.id !== 'opiadmin-icon-filter' ) {
+            return;
+        }
+
+        setCssVar( '--opi-admin-sidebar-icon-filter', iconFilterToCss( el.value ) );
     } );
 
     /**
