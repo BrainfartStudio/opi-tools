@@ -1,6 +1,6 @@
 /**
  * OPI Admin Customizer — Live Preview
- * assets/js/opiadmin-preview.js
+ * assets/js/opi-admin-preview.js
  *
  * Applies CSS variable updates in real time as settings are changed.
  * Depends on opi-admin (Core JS) for color pair sync.

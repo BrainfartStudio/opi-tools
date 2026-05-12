@@ -36,7 +36,7 @@ class OPI_Admin {
 
         wp_enqueue_script(
             'opiadmin-preview',
-            OPIADMIN_URL . 'assets/js/opiadmin-preview.js',
+            OPIADMIN_URL . 'assets/js/opi-admin-preview.js',
             [ 'opi-admin' ],
             OPIADMIN_VERSION,
             true
