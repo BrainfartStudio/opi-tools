@@ -198,12 +198,48 @@ $field = static function( string $key ): string {
                 <label><?php _e( 'Form Shadow', 'opi-login' ); ?></label>
                 <div class="opi-form-control">
                     <label>
-                        <input type="checkbox"
+                        <input type="checkbox" id="opilogin-form-shadow"
                                name="<?php echo esc_attr( $field( 'form_shadow' ) ); ?>"
                                value="1"
                                <?php checked( $settings['form_shadow'] ); ?>>
                         <?php _e( 'Show box shadow on login form', 'opi-login' ); ?>
                     </label>
+                </div>
+            </div>
+
+            <div id="opilogin-shadow-options" <?php echo $settings['form_shadow'] ? '' : 'style="display:none;"'; ?>>
+                <div class="opi-form-row">
+                    <label for="opilogin-shadow-color"><?php _e( 'Shadow Color', 'opi-login' ); ?></label>
+                    <div class="opi-form-control">
+                        <div class="opi-color-pair">
+                            <input type="color" id="opilogin-shadow-color"
+                                   name="<?php echo esc_attr( $field( 'form_shadow_color' ) ); ?>"
+                                   value="<?php echo esc_attr( $settings['form_shadow_color'] ); ?>">
+                            <input type="text"
+                                   value="<?php echo esc_attr( $settings['form_shadow_color'] ); ?>"
+                                   maxlength="7" placeholder="#000000">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="opi-form-row">
+                    <label for="opilogin-shadow-blur"><?php _e( 'Shadow Blur (px)', 'opi-login' ); ?></label>
+                    <div class="opi-form-control">
+                        <input type="number" id="opilogin-shadow-blur"
+                               name="<?php echo esc_attr( $field( 'form_shadow_blur' ) ); ?>"
+                               min="0" max="100" step="1"
+                               value="<?php echo esc_attr( $settings['form_shadow_blur'] ); ?>">
+                    </div>
+                </div>
+
+                <div class="opi-form-row">
+                    <label for="opilogin-shadow-spread"><?php _e( 'Shadow Spread (px)', 'opi-login' ); ?></label>
+                    <div class="opi-form-control">
+                        <input type="number" id="opilogin-shadow-spread"
+                               name="<?php echo esc_attr( $field( 'form_shadow_spread' ) ); ?>"
+                               min="0" max="50" step="1"
+                               value="<?php echo esc_attr( $settings['form_shadow_spread'] ); ?>">
+                    </div>
                 </div>
             </div>
         </div>
@@ -316,6 +352,15 @@ $field = static function( string $key ): string {
         var preview = document.getElementById( 'opilogin-bg-preview' );
         if ( preview ) { preview.src = ''; preview.style.display = 'none'; }
     } );
+
+    // Toggle shadow options visibility
+    var shadowToggle  = document.getElementById( 'opilogin-form-shadow' );
+    var shadowOptions = document.getElementById( 'opilogin-shadow-options' );
+    if ( shadowToggle && shadowOptions ) {
+        shadowToggle.addEventListener( 'change', function() {
+            shadowOptions.style.display = this.checked ? '' : 'none';
+        } );
+    }
 
     // logo_bg_color: text input is the POST field; keep color picker in sync.
     ( function() {

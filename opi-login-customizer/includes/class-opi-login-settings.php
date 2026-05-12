@@ -13,20 +13,23 @@ class OPI_Login_Settings extends OPI_Settings_Base {
 
     public static function get_defaults(): array {
         return [
-            'logo_id'        => 0,
-            'logo_bg_color'  => '#ffffff',
-            'logo_shape'     => 'none',
-            'header_text'    => '',
-            'bg_color'       => '#f0f0f1',
-            'bg_image_id'    => 0,
-            'form_bg_color'  => '#ffffff',
-            'form_radius'    => 4,
-            'form_width'     => 320,
-            'form_shadow'    => true,
-            'button_color'   => '#2271b1',
-            'button_text'    => '#ffffff',
-            'font_family'    => 'inherit',
-            'custom_css'     => '',
+            'logo_id'           => 0,
+            'logo_bg_color'     => '#ffffff',
+            'logo_shape'        => 'none',
+            'header_text'       => '',
+            'bg_color'          => '#f0f0f1',
+            'bg_image_id'       => 0,
+            'form_bg_color'     => '#ffffff',
+            'form_radius'       => 4,
+            'form_width'        => 320,
+            'form_shadow'       => true,
+            'form_shadow_color' => '#000000',
+            'form_shadow_blur'  => 24,
+            'form_shadow_spread'=> 0,
+            'button_color'      => '#2271b1',
+            'button_text'       => '#ffffff',
+            'font_family'       => 'inherit',
+            'custom_css'        => '',
         ];
     }
 
@@ -54,6 +57,10 @@ class OPI_Login_Settings extends OPI_Settings_Base {
 
         // form_shadow arrives as checkbox — absent means false
         $clean['form_shadow'] = ! empty( $input['form_shadow'] );
+
+        // shadow blur/spread — clamp to sane range
+        $clean['form_shadow_blur']   = min( 100, absint( $input['form_shadow_blur']   ?? 24 ) );
+        $clean['form_shadow_spread'] = min( 50,  absint( $input['form_shadow_spread'] ?? 0  ) );
 
         // custom_css — strip tags, not sanitize_text_field (preserves newlines/braces)
         $clean['custom_css'] = wp_strip_all_tags( $input['custom_css'] ?? '' );

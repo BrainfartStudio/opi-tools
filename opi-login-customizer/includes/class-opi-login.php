@@ -8,11 +8,11 @@ class OPI_Login {
     public static function init(): void {
         require_once OPILOGIN_PATH . 'includes/class-opi-login-settings.php';
 
-        add_action( 'admin_enqueue_scripts',   [ __CLASS__, 'enqueue_admin_scripts' ] );
+        add_action( 'admin_enqueue_scripts',      [ __CLASS__, 'enqueue_admin_scripts' ] );
         add_action( 'opi_tools_register_plugins', [ __CLASS__, 'register_with_core' ] );
-        add_action( 'login_enqueue_scripts',   [ __CLASS__, 'enqueue_styles' ] );
-        add_filter( 'login_headerurl',         [ __CLASS__, 'header_url' ] );
-        add_filter( 'login_headertext',        [ __CLASS__, 'header_text' ] );
+        add_action( 'login_enqueue_scripts',      [ __CLASS__, 'enqueue_styles' ] );
+        add_filter( 'login_headerurl',            [ __CLASS__, 'header_url' ] );
+        add_filter( 'login_headertext',           [ __CLASS__, 'header_text' ] );
     }
 
     public static function register_with_core(): void {
@@ -63,8 +63,17 @@ class OPI_Login {
         $bg_url   = $s['bg_image_id'] ? wp_get_attachment_image_url( $s['bg_image_id'], 'full' ) : '';
         $radius   = absint( $s['form_radius'] ) . 'px';
         $width    = absint( $s['form_width'] ) . 'px';
-        $shadow   = $s['form_shadow'] ? '0 4px 24px rgba(0,0,0,0.12)' : 'none';
         $font     = esc_attr( $s['font_family'] ) ?: 'inherit';
+
+        // Build box-shadow value
+        if ( $s['form_shadow'] ) {
+            $shadow_color  = esc_attr( $s['form_shadow_color'] );
+            $shadow_blur   = absint( $s['form_shadow_blur'] ) . 'px';
+            $shadow_spread = absint( $s['form_shadow_spread'] ) . 'px';
+            $shadow        = "0 4px {$shadow_blur} {$shadow_spread} {$shadow_color}";
+        } else {
+            $shadow = 'none';
+        }
 
         // logo shape → border-radius on the logo container
         $logo_shape_radius = match( $s['logo_shape'] ) {
@@ -79,13 +88,19 @@ class OPI_Login {
                 font-family: {$font};
                 " . ( $bg_url ? "background-image: url('{$bg_url}'); background-size: cover; background-position: center;" : '' ) . "
             }
+            body.login #login {
+                width: {$width};
+                margin-left: auto;
+                margin-right: auto;
+            }
             body.login #loginform,
             body.login #lostpasswordform,
             body.login #registerform {
                 background: {$s['form_bg_color']};
                 border-radius: {$radius};
                 box-shadow: {$shadow};
-                width: {$width};
+                width: 100%;
+                box-sizing: border-box;
             }
             body.login .button-primary {
                 background: {$s['button_color']} !important;
