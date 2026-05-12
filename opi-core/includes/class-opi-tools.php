@@ -131,7 +131,14 @@ class OPI_Tools {
         if ( ! current_user_can( 'manage_options' ) ) {
             return;
         }
-        require_once OPITOOLS_PATH . 'includes/views/dashboard.php';
+
+        $view = sanitize_key( $_GET['view'] ?? 'dashboard' );
+
+        if ( $view === 'settings' ) {
+            require_once OPITOOLS_PATH . 'includes/views/settings.php';
+        } else {
+            require_once OPITOOLS_PATH . 'includes/views/dashboard.php';
+        }
     }
 
     /**
