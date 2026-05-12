@@ -15,9 +15,11 @@ class OPI_Admin_Settings extends OPI_Settings_Base {
         return [
             'sidebar_bg'         => '#23282d',
             'sidebar_text'       => '#a7aaad',
+            'sidebar_icon_color' => '#a7aaad',
             'sidebar_highlight'  => '#2271b1',
             'sidebar_submenu_bg' => '#32373c',
             'sidebar_open_bg'    => '#191e23',
+            'sidebar_icon_filter'=> 'light',
             'sidebar_width'      => 160,
             'sidebar_icon_size'  => 20,
             'sidebar_font_size'  => 13,
@@ -31,8 +33,12 @@ class OPI_Admin_Settings extends OPI_Settings_Base {
     }
 
     public static function sanitize( array $input ): array {
-        $clean               = static::sanitize_base( $input );
-        $clean['custom_css'] = wp_strip_all_tags( $input['custom_css'] ?? '' );
+        $clean                        = static::sanitize_base( $input );
+        $clean['custom_css']          = wp_strip_all_tags( $input['custom_css'] ?? '' );
+        $allowed_filters              = [ 'light', 'dark', 'none' ];
+        $clean['sidebar_icon_filter'] = in_array( $input['sidebar_icon_filter'] ?? '', $allowed_filters, true )
+            ? $input['sidebar_icon_filter']
+            : 'light';
         return $clean;
     }
 }
