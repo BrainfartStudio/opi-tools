@@ -43,6 +43,21 @@ class OPI_Admin {
         );
     }
 
+    /**
+     * Map a sidebar_icon_filter setting value to a CSS filter string.
+     */
+    private static function icon_filter( string $setting ): string {
+        switch ( $setting ) {
+            case 'dark':
+                return 'brightness(0)';
+            case 'none':
+                return 'none';
+            case 'light':
+            default:
+                return 'brightness(0) invert(1)';
+        }
+    }
+
     public static function output_css(): void {
         $s    = OPI_Admin_Settings::get();
         $font = esc_attr( $s['font_family'] ) ?: 'inherit';
@@ -51,17 +66,23 @@ class OPI_Admin {
         if ( $font !== 'inherit' ) {
             OPI_Google_Fonts::enqueue( $font );
         }
+
+        // Defensive fallbacks for fields added in later commits.
+        $icon_color  = $s['sidebar_icon_color']  ?? $s['sidebar_text'];
+        $icon_filter = self::icon_filter( $s['sidebar_icon_filter'] ?? 'light' );
         ?>
         <style id="opi-admin-customizer">
             :root {
                 --opi-admin-sidebar-bg:          <?php echo esc_attr( $s['sidebar_bg'] ); ?>;
                 --opi-admin-sidebar-text:        <?php echo esc_attr( $s['sidebar_text'] ); ?>;
+                --opi-admin-sidebar-icon-color:  <?php echo esc_attr( $icon_color ); ?>;
                 --opi-admin-sidebar-highlight:   <?php echo esc_attr( $s['sidebar_highlight'] ); ?>;
                 --opi-admin-sidebar-submenu-bg:  <?php echo esc_attr( $s['sidebar_submenu_bg'] ); ?>;
                 --opi-admin-sidebar-open-bg:     <?php echo esc_attr( $s['sidebar_open_bg'] ); ?>;
                 --opi-admin-sidebar-width:       <?php echo absint( $s['sidebar_width'] ); ?>px;
                 --opi-admin-sidebar-icon-size:   <?php echo absint( $s['sidebar_icon_size'] ); ?>px;
                 --opi-admin-sidebar-font-size:   <?php echo absint( $s['sidebar_font_size'] ); ?>px;
+                --opi-admin-sidebar-icon-filter: <?php echo $icon_filter; ?>;
                 --opi-admin-topbar-bg:           <?php echo esc_attr( $s['topbar_bg'] ); ?>;
                 --opi-admin-topbar-text:         <?php echo esc_attr( $s['topbar_text'] ); ?>;
                 --opi-admin-topbar-height:       <?php echo absint( $s['topbar_height'] ); ?>px;
@@ -69,28 +90,101 @@ class OPI_Admin {
                 --opi-admin-font:                <?php echo $font; ?>;
             }
 
-            /* Sidebar shell */
+            /* ── Sidebar shell ───────────────────────────────────────────── */
+
             #adminmenu, #adminmenuback, #adminmenuwrap {
                 background: var( --opi-admin-sidebar-bg );
                 width: var( --opi-admin-sidebar-width );
             }
 
-            /* Push main content area to match sidebar width */
+            /* Submenu matches sidebar width so it doesn't overflow or underlap */
+            #adminmenu .wp-submenu {
+                width: var( --opi-admin-sidebar-width ) !important;
+                min-width: 0 !important;
+                box-sizing: border-box;
+            }
+
+            /* ── Content offset ──────────────────────────────────────────── */
+
+            /* Horizontal: push content right to match sidebar width */
             #wpcontent, #wpfooter {
                 margin-left: var( --opi-admin-sidebar-width ) !important;
             }
 
-            /* Sidebar text + icons */
+            /* Vertical: push content down to match top bar height */
+            #wpcontent {
+                padding-top: var( --opi-admin-topbar-height );
+            }
+            body.wp-toolbar {
+                padding-top: var( --opi-admin-topbar-height ) !important;
+            }
+
+            /* ── Top bar ─────────────────────────────────────────────────── */
+
+            #wpadminbar {
+                background: var( --opi-admin-topbar-bg );
+                height: var( --opi-admin-topbar-height ) !important;
+                min-height: var( --opi-admin-topbar-height ) !important;
+            }
+            /* Keep inner items vertically centered as bar height changes */
+            #wpadminbar .ab-top-menu > li,
+            #wpadminbar .ab-top-menu > li > .ab-item {
+                height: var( --opi-admin-topbar-height ) !important;
+                line-height: var( --opi-admin-topbar-height ) !important;
+            }
+            #wpadminbar *,
+            #wpadminbar .ab-item {
+                color: var( --opi-admin-topbar-text ) !important;
+                font-size: var( --opi-admin-topbar-font-size );
+            }
+
+            /* ── Sidebar menu items ──────────────────────────────────────── */
+
+            /* Flex layout so icon and label stay side-by-side at any size */
+            #adminmenu a.menu-top {
+                display: flex !important;
+                align-items: center !important;
+                height: auto !important;
+                padding-top: 6px !important;
+                padding-bottom: 6px !important;
+            }
+
+            /* Icon column width tracks icon size so it never bleeds into text */
+            #adminmenu .wp-menu-image {
+                width: calc( var( --opi-admin-sidebar-icon-size ) + 16px ) !important;
+                height: auto !important;
+                flex-shrink: 0;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+
+            /* Dashicon pseudo-element */
+            #adminmenu .wp-menu-image:before {
+                color: var( --opi-admin-sidebar-icon-color ) !important;
+                font-size: var( --opi-admin-sidebar-icon-size ) !important;
+                line-height: 1 !important;
+                width: auto !important;
+                height: auto !important;
+                float: none !important;
+            }
+
+            /* Third-party SVG / <img> icons */
+            #adminmenu .wp-menu-image img {
+                filter: var( --opi-admin-sidebar-icon-filter ) !important;
+                width: var( --opi-admin-sidebar-icon-size ) !important;
+                height: var( --opi-admin-sidebar-icon-size ) !important;
+            }
+
+            /* Menu label text */
             #adminmenu a, #adminmenu .wp-menu-name {
                 color: var( --opi-admin-sidebar-text ) !important;
                 font-size: var( --opi-admin-sidebar-font-size );
-            }
-            #adminmenu .wp-menu-image:before {
-                color: var( --opi-admin-sidebar-text ) !important;
-                font-size: var( --opi-admin-sidebar-icon-size ) !important;
+                line-height: 1.4 !important;
             }
 
-            /* Active / current item */
+            /* ── Active / current item ───────────────────────────────────── */
+
             #adminmenu .current a.menu-top,
             #adminmenu .wp-has-current-submenu .wp-submenu-head,
             #adminmenu a.menu-top:hover {
@@ -102,13 +196,15 @@ class OPI_Admin {
                 color: #fff !important;
             }
 
-            /* Open (expanded) menu item */
+            /* ── Open (expanded) item ────────────────────────────────────── */
+
             #adminmenu .wp-menu-open > a.menu-top,
             #adminmenu .wp-has-current-submenu > a.menu-top {
                 background: var( --opi-admin-sidebar-open-bg ) !important;
             }
 
-            /* Submenu background */
+            /* ── Submenu ─────────────────────────────────────────────────── */
+
             #adminmenu .wp-submenu,
             #adminmenu .wp-menu-open .wp-submenu {
                 background: var( --opi-admin-sidebar-submenu-bg ) !important;
@@ -121,18 +217,8 @@ class OPI_Admin {
                 color: #fff !important;
             }
 
-            /* Top bar */
-            #wpadminbar {
-                background: var( --opi-admin-topbar-bg );
-                min-height: var( --opi-admin-topbar-height );
-            }
-            #wpadminbar *,
-            #wpadminbar .ab-item {
-                color: var( --opi-admin-topbar-text ) !important;
-                font-size: var( --opi-admin-topbar-font-size );
-            }
+            /* ── Font — applied globally ─────────────────────────────────── */
 
-            /* Font — applied globally */
             body, #wpcontent, .wrap {
                 font-family: var( --opi-admin-font );
             }
