@@ -13,18 +13,20 @@ class OPI_Admin_Settings extends OPI_Settings_Base {
 
     public static function get_defaults(): array {
         return [
-            'sidebar_bg'        => '#23282d',
-            'sidebar_text'      => '#a7aaad',
-            'sidebar_highlight' => '#2271b1',
-            'sidebar_width'     => 160,
-            'sidebar_icon_size' => 20,
-            'sidebar_font_size' => 13,
-            'topbar_bg'         => '#23282d',
-            'topbar_text'       => '#a7aaad',
-            'topbar_height'     => 32,
-            'topbar_font_size'  => 13,
-            'font_family'       => 'inherit',
-            'custom_css'        => '',
+            'sidebar_bg'         => '#23282d',
+            'sidebar_text'       => '#a7aaad',
+            'sidebar_highlight'  => '#2271b1',
+            'sidebar_submenu_bg' => '#32373c',
+            'sidebar_open_bg'    => '#191e23',
+            'sidebar_width'      => 160,
+            'sidebar_icon_size'  => 20,
+            'sidebar_font_size'  => 13,
+            'topbar_bg'          => '#23282d',
+            'topbar_text'        => '#a7aaad',
+            'topbar_height'      => 32,
+            'topbar_font_size'   => 13,
+            'font_family'        => 'inherit',
+            'custom_css'         => '',
         ];
     }
 
