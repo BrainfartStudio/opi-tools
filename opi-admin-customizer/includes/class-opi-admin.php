@@ -5,12 +5,11 @@ defined( 'ABSPATH' ) || exit;
 
 class OPI_Admin {
 
-    const OPTION_KEY = 'opiadmin_settings';
-
     public static function init(): void {
         require_once OPIADMIN_PATH . 'includes/class-opi-admin-settings.php';
 
         add_action( 'admin_head',                  [ __CLASS__, 'output_css' ] );
+        add_action( 'admin_enqueue_scripts',       [ __CLASS__, 'enqueue_assets' ] );
         add_action( 'opi_tools_register_plugins',  [ __CLASS__, 'register_with_core' ] );
     }
 
@@ -19,7 +18,10 @@ class OPI_Admin {
             'opi-admin',
             'Admin Customizer',
             OPIADMIN_VERSION,
-            [ __CLASS__, 'render_page' ]
+            [ __CLASS__, 'render_page' ],
+            'manage_options',
+            [ __CLASS__, 'widget_data' ],
+            [ __CLASS__, 'health_data' ]
         );
     }
 
@@ -27,24 +29,55 @@ class OPI_Admin {
         require_once OPIADMIN_PATH . 'includes/views/settings-page.php';
     }
 
+    public static function enqueue_assets( string $hook ): void {
+        if ( $hook !== 'toplevel_page_opi-admin' ) {
+            return;
+        }
+
+        wp_enqueue_script(
+            'opiadmin-preview',
+            OPIADMIN_URL . 'assets/js/opiadmin-preview.js',
+            [ 'opi-admin' ],
+            OPIADMIN_VERSION,
+            true
+        );
+    }
+
     public static function output_css(): void {
         $s    = OPI_Admin_Settings::get();
         $font = esc_attr( $s['font_family'] ) ?: 'inherit';
         ?>
         <style id="opi-admin-customizer">
+            :root {
+                --opi-admin-sidebar-bg:        <?php echo esc_attr( $s['sidebar_bg'] ); ?>;
+                --opi-admin-sidebar-text:      <?php echo esc_attr( $s['sidebar_text'] ); ?>;
+                --opi-admin-sidebar-highlight: <?php echo esc_attr( $s['sidebar_highlight'] ); ?>;
+                --opi-admin-sidebar-width:     <?php echo absint( $s['sidebar_width'] ); ?>px;
+                --opi-admin-sidebar-icon-size: <?php echo absint( $s['sidebar_icon_size'] ); ?>px;
+                --opi-admin-sidebar-font-size: <?php echo absint( $s['sidebar_font_size'] ); ?>px;
+                --opi-admin-topbar-bg:         <?php echo esc_attr( $s['topbar_bg'] ); ?>;
+                --opi-admin-topbar-text:       <?php echo esc_attr( $s['topbar_text'] ); ?>;
+                --opi-admin-topbar-height:     <?php echo absint( $s['topbar_height'] ); ?>px;
+                --opi-admin-topbar-font-size:  <?php echo absint( $s['topbar_font_size'] ); ?>px;
+                --opi-admin-font:              <?php echo $font; ?>;
+            }
+
             #adminmenu, #adminmenuback, #adminmenuwrap {
-                background: <?php echo esc_attr( $s['sidebar_bg'] ); ?>;
+                background: var( --opi-admin-sidebar-bg );
+                width: var( --opi-admin-sidebar-width );
             }
             #adminmenu a, #adminmenu .wp-menu-name {
-                color: <?php echo esc_attr( $s['sidebar_text'] ); ?> !important;
+                color: var( --opi-admin-sidebar-text ) !important;
+                font-size: var( --opi-admin-sidebar-font-size );
             }
             #adminmenu .wp-menu-image:before {
-                color: <?php echo esc_attr( $s['sidebar_text'] ); ?> !important;
+                color: var( --opi-admin-sidebar-text ) !important;
+                font-size: var( --opi-admin-sidebar-icon-size ) !important;
             }
             #adminmenu .current a.menu-top,
             #adminmenu .wp-has-current-submenu .wp-submenu-head,
             #adminmenu a.menu-top:hover {
-                background: <?php echo esc_attr( $s['sidebar_highlight'] ); ?> !important;
+                background: var( --opi-admin-sidebar-highlight ) !important;
                 color: #fff !important;
             }
             #adminmenu .current .wp-menu-image:before,
@@ -52,17 +85,31 @@ class OPI_Admin {
                 color: #fff !important;
             }
             #wpadminbar {
-                background: <?php echo esc_attr( $s['topbar_bg'] ); ?>;
+                background: var( --opi-admin-topbar-bg );
+                min-height: var( --opi-admin-topbar-height );
             }
             #wpadminbar *,
             #wpadminbar .ab-item {
-                color: <?php echo esc_attr( $s['topbar_text'] ); ?> !important;
+                color: var( --opi-admin-topbar-text ) !important;
+                font-size: var( --opi-admin-topbar-font-size );
             }
             #wpadminmain, body, .wrap {
-                font-family: <?php echo $font; ?>;
+                font-family: var( --opi-admin-font );
             }
             <?php echo wp_strip_all_tags( $s['custom_css'] ); ?>
         </style>
         <?php
+    }
+
+    public static function widget_data(): array {
+        return [
+            'status' => 'ok',
+            'label'  => 'Admin Customizer',
+            'value'  => 'Active',
+        ];
+    }
+
+    public static function health_data(): array {
+        return [ 'severity' => 'ok' ];
     }
 }
