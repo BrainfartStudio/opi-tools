@@ -27,7 +27,6 @@ class OPI_Bluesky_API {
             'embed'     => self::build_external_embed( $post, $url ),
         ];
 
-        // Attach facet so the URL is a clickable link on Bluesky.
         $url_start = strlen( get_the_title( $post ) . "\n\n" );
         $url_end   = $url_start + strlen( $url );
 
@@ -97,7 +96,34 @@ class OPI_Bluesky_API {
     }
 
     /**
-     * Resolve a post URI to get its CID and thread root for reply threading.
+     * Quote post — post text with an embedded reference to another post.
+     */
+    public static function quote_post( string $text, string $uri, string $cid ): array|\WP_Error {
+        $token = OPI_Bluesky_Auth::get_access_token();
+        if ( is_wp_error( $token ) ) {
+            return $token;
+        }
+
+        $did = OPI_Bluesky_Auth::get_did();
+
+        $record = [
+            '$type'     => 'app.bsky.feed.post',
+            'text'      => $text,
+            'createdAt' => gmdate( 'Y-m-d\TH:i:s\Z' ),
+            'embed'     => [
+                '$type'  => 'app.bsky.embed.record',
+                'record' => [
+                    'uri' => $uri,
+                    'cid' => $cid,
+                ],
+            ],
+        ];
+
+        return self::create_record( $token, $did, $record );
+    }
+
+    /**
+     * Resolve a post URI to get its CID.
      * Returns [ 'uri' => ..., 'cid' => ... ] or WP_Error.
      */
     public static function resolve_post( string $uri ): array|\WP_Error {
@@ -140,7 +166,7 @@ class OPI_Bluesky_API {
     }
 
     /**
-     * Build reply $ref from a parent post URI, resolving thread root if needed.
+     * Build reply $ref from a parent post URI.
      */
     public static function build_reply_ref( string $parent_uri ): array|\WP_Error {
         $parent = self::resolve_post( $parent_uri );
@@ -148,8 +174,6 @@ class OPI_Bluesky_API {
             return $parent;
         }
 
-        // For simplicity, root = parent (correct for top-level replies).
-        // Deep threading would require walking up the thread.
         return [
             'root'   => $parent,
             'parent' => $parent,

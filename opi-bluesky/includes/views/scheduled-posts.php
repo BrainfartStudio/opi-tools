@@ -20,13 +20,17 @@ if ( isset( $_POST['opibluesky_save_post'] ) && check_admin_referer( 'opibluesky
             $scheduled_at = 0;
         }
     }
-    $type         = sanitize_key( $_POST['bsky_type'] ?? 'post' );
-    $ref_uri      = sanitize_text_field( $_POST['bsky_ref_uri'] ?? '' );
-    $ref_cid      = sanitize_text_field( $_POST['bsky_ref_cid'] ?? '' );
-    $edit_id      = intval( $_POST['bsky_post_id'] ?? 0 );
+    $type    = sanitize_key( $_POST['bsky_type'] ?? 'post' );
+    $ref_uri = sanitize_text_field( $_POST['bsky_ref_uri'] ?? '' );
+    $ref_cid = sanitize_text_field( $_POST['bsky_ref_cid'] ?? '' );
+    $edit_id = intval( $_POST['bsky_post_id'] ?? 0 );
 
-    if ( ! $content || ! $scheduled_at ) {
-        $message = '<div class="notice notice-error"><p>' . __( 'Content and scheduled date are required.', 'opi-bluesky' ) . '</p></div>';
+    // Content is required except for reposts (which can be plain reposts with no text).
+    $content_required = ( $type !== 'repost' );
+    $invalid = ! $scheduled_at || ( $content_required && ! $content );
+
+    if ( $invalid ) {
+        $message = '<div class="notice notice-error"><p>' . __( 'Scheduled date is required. Content is required for posts and replies.', 'opi-bluesky' ) . '</p></div>';
         $action  = isset( $_POST['bsky_post_id'] ) && intval( $_POST['bsky_post_id'] ) ? 'edit' : 'new';
     } else {
         if ( $edit_id ) {
@@ -143,7 +147,7 @@ if ( $action === 'edit' && $post_id ) {
                     <td>
                         <select id="bsky_type" name="bsky_type">
                             <option value="post"   <?php selected( $type, 'post' ); ?>><?php _e( 'Post', 'opi-bluesky' ); ?></option>
-                            <option value="repost" <?php selected( $type, 'repost' ); ?>><?php _e( 'Repost', 'opi-bluesky' ); ?></option>
+                            <option value="repost" <?php selected( $type, 'repost' ); ?>><?php _e( 'Repost / Quote Post', 'opi-bluesky' ); ?></option>
                             <option value="reply"  <?php selected( $type, 'reply' ); ?>><?php _e( 'Reply', 'opi-bluesky' ); ?></option>
                         </select>
                     </td>
@@ -156,7 +160,7 @@ if ( $action === 'edit' && $post_id ) {
                                class="large-text"
                                placeholder="https://bsky.app/profile/user.bsky.social/post/abc123">
                         <p class="description" id="bsky_ref_desc_repost" <?php echo $type !== 'repost' ? 'style="display:none;"' : ''; ?>>
-                            <?php _e( 'Paste the Bluesky post URL to repost. CID will be resolved automatically.', 'opi-bluesky' ); ?>
+                            <?php _e( 'Paste the Bluesky post URL to repost. Leave content blank for a plain repost, or add text to quote post.', 'opi-bluesky' ); ?>
                         </p>
                         <p class="description" id="bsky_ref_desc_reply" <?php echo $type !== 'reply' ? 'style="display:none;"' : ''; ?>>
                             <?php _e( 'Paste the Bluesky post URL you are replying to.', 'opi-bluesky' ); ?>
@@ -171,7 +175,7 @@ if ( $action === 'edit' && $post_id ) {
                             <span id="bsky_char_count">0</span>/300 <?php _e( 'characters', 'opi-bluesky' ); ?>
                         </p>
                         <p class="description" id="bsky_content_desc_repost" <?php echo $type !== 'repost' ? 'style="display:none;"' : ''; ?>>
-                            <?php _e( 'Optional quote text for the repost. Leave blank for a plain repost.', 'opi-bluesky' ); ?>
+                            <?php _e( 'Optional — leave blank for a plain repost, or add your comment to quote post.', 'opi-bluesky' ); ?>
                         </p>
                     </td>
                 </tr>

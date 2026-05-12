@@ -58,17 +58,26 @@ class OPI_Bluesky_Scheduler {
         }
     }
 
+    /**
+     * Repost or quote post depending on whether content is provided.
+     */
     private static function handle_repost( string $ref_uri, string $ref_cid, string $content ): array|\WP_Error {
-        if ( ! $ref_cid && $ref_uri ) {
-            $resolved = OPI_Bluesky_API::resolve_post( self::normalize_uri( $ref_uri ) );
+        $uri = self::normalize_uri( $ref_uri );
+
+        if ( ! $ref_cid ) {
+            $resolved = OPI_Bluesky_API::resolve_post( $uri );
             if ( is_wp_error( $resolved ) ) {
                 return $resolved;
             }
-            $ref_uri = $resolved['uri'];
+            $uri     = $resolved['uri'];
             $ref_cid = $resolved['cid'];
         }
 
-        return OPI_Bluesky_API::repost( $ref_uri, $ref_cid );
+        if ( ! empty( trim( $content ) ) ) {
+            return OPI_Bluesky_API::quote_post( $content, $uri, $ref_cid );
+        }
+
+        return OPI_Bluesky_API::repost( $uri, $ref_cid );
     }
 
     private static function handle_reply( string $ref_uri, string $content ): array|\WP_Error {
