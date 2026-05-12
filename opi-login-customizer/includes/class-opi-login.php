@@ -118,9 +118,6 @@ class OPI_Login {
             }
         ";
 
-        // Logo set: hide WP's default h1 a and show custom logo image.
-        // No logo + header text set: hide WP's h1 entirely (we inject our own below).
-        // Neither: leave WP's default h1/logo untouched.
         if ( $logo_url ) {
             $css .= "
             body.login h1 a {
@@ -132,7 +129,6 @@ class OPI_Login {
                 " . ( $logo_shape_radius ? "border-radius: {$logo_shape_radius};" : '' ) . "
             }";
         } elseif ( ! empty( $s['header_text'] ) ) {
-            // Hide the WP logo link; our h2 injected via login_message takes its place.
             $css .= "
             body.login h1 { display: none; }
             body.login .opilogin-header-text {
@@ -190,11 +186,11 @@ class OPI_Login {
     }
 
     public static function enqueue_admin_scripts( string $hook ): void {
-        if ( $hook !== 'toplevel_page_opi-login' ) {
+        // Submenu under opi-tools generates hook: 'opi-tools_page_{slug}'
+        if ( $hook !== 'opi-tools_page_opi-login' ) {
             return;
         }
 
         wp_enqueue_media();
-        // login-admin.js deleted — media picker handled by Core OPI.media()
     }
 }
