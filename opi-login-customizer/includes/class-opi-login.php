@@ -13,6 +13,7 @@ class OPI_Login {
         add_action( 'login_enqueue_scripts',      [ __CLASS__, 'enqueue_styles' ] );
         add_filter( 'login_headerurl',            [ __CLASS__, 'header_url' ] );
         add_filter( 'login_headertext',           [ __CLASS__, 'header_text' ] );
+        add_filter( 'login_message',              [ __CLASS__, 'inject_header_text' ] );
     }
 
     public static function register_with_core(): void {
@@ -117,6 +118,9 @@ class OPI_Login {
             }
         ";
 
+        // Logo set: hide WP's default h1 a and show custom logo image.
+        // No logo + header text set: hide WP's h1 entirely (we inject our own below).
+        // Neither: leave WP's default h1/logo untouched.
         if ( $logo_url ) {
             $css .= "
             body.login h1 a {
@@ -126,6 +130,19 @@ class OPI_Login {
                 width: 100% !important;
                 height: 80px !important;
                 " . ( $logo_shape_radius ? "border-radius: {$logo_shape_radius};" : '' ) . "
+            }";
+        } elseif ( ! empty( $s['header_text'] ) ) {
+            // Hide the WP logo link; our h2 injected via login_message takes its place.
+            $css .= "
+            body.login h1 { display: none; }
+            body.login .opilogin-header-text {
+                display: block;
+                text-align: center;
+                font-size: 24px;
+                font-weight: 700;
+                color: #fff;
+                margin: 0 0 20px;
+                text-shadow: 0 1px 3px rgba(0,0,0,0.3);
             }";
         }
 
@@ -140,10 +157,29 @@ class OPI_Login {
         }
     }
 
+    /**
+     * Inject header text above the login form when no logo is set.
+     * login_message output appears inside #login, above #loginform.
+     */
+    public static function inject_header_text( string $message ): string {
+        $s = OPI_Login_Settings::get();
+
+        if ( empty( $s['logo_id'] ) && ! empty( $s['header_text'] ) ) {
+            $message = '<h2 class="opilogin-header-text">' . esc_html( $s['header_text'] ) . '</h2>' . $message;
+        }
+
+        return $message;
+    }
+
     public static function header_url(): string {
         return home_url();
     }
 
+    /**
+     * login_headertext sets the <a> title/aria-label only.
+     * When a logo is set, use the header text (or site name) for accessibility.
+     * When no logo, return site name — the visible heading is handled by inject_header_text().
+     */
     public static function header_text(): string {
         $s = OPI_Login_Settings::get();
         return esc_html( $s['header_text'] ) ?: get_bloginfo( 'name' );

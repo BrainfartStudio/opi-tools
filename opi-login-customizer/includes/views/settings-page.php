@@ -67,7 +67,7 @@ $field = static function( string $key ): string {
                     <button type="button" class="button" id="opilogin-logo-remove">
                         <?php _e( 'Remove', 'opi-login' ); ?>
                     </button>
-                    <p class="description"><?php _e( 'Replaces the WordPress logo on the login page.', 'opi-login' ); ?></p>
+                    <p class="description"><?php _e( 'Replaces the WordPress logo on the login page. Takes priority over Header Text.', 'opi-login' ); ?></p>
                 </div>
             </div>
 
@@ -109,7 +109,9 @@ $field = static function( string $key ): string {
                            name="<?php echo esc_attr( $field( 'header_text' ) ); ?>"
                            class="regular-text"
                            value="<?php echo esc_attr( $settings['header_text'] ); ?>">
-                    <p class="description"><?php _e( 'Shown as the logo link title text. Defaults to site name if empty.', 'opi-login' ); ?></p>
+                    <p class="description">
+                        <?php _e( 'Shown as a heading above the login form when no logo is set. If neither is set, the WordPress logo is displayed.', 'opi-login' ); ?>
+                    </p>
                 </div>
             </div>
         </div>
