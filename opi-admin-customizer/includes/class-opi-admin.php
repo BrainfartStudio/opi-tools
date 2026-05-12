@@ -11,6 +11,8 @@ class OPI_Admin {
         add_action( 'admin_head',                  [ __CLASS__, 'output_css' ] );
         add_action( 'admin_enqueue_scripts',       [ __CLASS__, 'enqueue_assets' ] );
         add_action( 'opi_tools_register_plugins',  [ __CLASS__, 'register_with_core' ] );
+        add_action( 'admin_post_opiadmin_save',    [ __CLASS__, 'handle_save' ] );
+        add_action( 'admin_post_opiadmin_reset',   [ __CLASS__, 'handle_reset' ] );
     }
 
     public static function register_with_core(): void {
@@ -27,6 +29,45 @@ class OPI_Admin {
 
     public static function render_page(): void {
         require_once OPIADMIN_PATH . 'includes/views/settings-page.php';
+    }
+
+    /**
+     * Handle save form submission via admin-post.php.
+     */
+    public static function handle_save(): void {
+        check_admin_referer( 'opiadmin_action' );
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_die( __( 'Sorry, you are not allowed to do that.', 'opi-admin' ) );
+        }
+
+        $sanitized = OPI_Admin_Settings::sanitize( $_POST[ OPI_Admin_Settings::OPTION_KEY ] ?? [] );
+        OPI_Admin_Settings::update( $sanitized );
+
+        wp_redirect( add_query_arg(
+            'saved', '1',
+            admin_url( 'admin.php?page=opi-admin' )
+        ) );
+        exit;
+    }
+
+    /**
+     * Handle reset form submission via admin-post.php.
+     */
+    public static function handle_reset(): void {
+        check_admin_referer( 'opiadmin_reset_action' );
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_die( __( 'Sorry, you are not allowed to do that.', 'opi-admin' ) );
+        }
+
+        OPI_Admin_Settings::update( OPI_Admin_Settings::get_defaults() );
+
+        wp_redirect( add_query_arg(
+            'reset', '1',
+            admin_url( 'admin.php?page=opi-admin' )
+        ) );
+        exit;
     }
 
     public static function enqueue_assets( string $hook ): void {
@@ -67,7 +108,6 @@ class OPI_Admin {
             OPI_Google_Fonts::enqueue( $font );
         }
 
-        // Defensive fallbacks for fields added in later commits.
         $icon_color  = $s['sidebar_icon_color']  ?? $s['sidebar_text'];
         $icon_filter = self::icon_filter( $s['sidebar_icon_filter'] ?? 'light' );
         ?>
@@ -106,12 +146,10 @@ class OPI_Admin {
 
             /* ── Content offset ──────────────────────────────────────────── */
 
-            /* Horizontal: push content right to match sidebar width */
             #wpcontent, #wpfooter {
                 margin-left: var( --opi-admin-sidebar-width ) !important;
             }
 
-            /* Vertical: push content down to match top bar height */
             #wpcontent {
                 padding-top: var( --opi-admin-topbar-height );
             }
@@ -126,7 +164,6 @@ class OPI_Admin {
                 height: var( --opi-admin-topbar-height ) !important;
                 min-height: var( --opi-admin-topbar-height ) !important;
             }
-            /* Keep inner items vertically centered as bar height changes */
             #wpadminbar .ab-top-menu > li,
             #wpadminbar .ab-top-menu > li > .ab-item {
                 height: var( --opi-admin-topbar-height ) !important;
@@ -140,7 +177,6 @@ class OPI_Admin {
 
             /* ── Sidebar menu items ──────────────────────────────────────── */
 
-            /* Flex layout so icon and label stay side-by-side at any size */
             #adminmenu a.menu-top {
                 display: flex !important;
                 align-items: center !important;
@@ -149,7 +185,6 @@ class OPI_Admin {
                 padding-bottom: 6px !important;
             }
 
-            /* Icon column width tracks icon size so it never bleeds into text */
             #adminmenu .wp-menu-image {
                 width: calc( var( --opi-admin-sidebar-icon-size ) + 16px ) !important;
                 height: auto !important;
@@ -159,7 +194,6 @@ class OPI_Admin {
                 justify-content: center !important;
             }
 
-            /* Dashicon pseudo-element */
             #adminmenu .wp-menu-image:before {
                 color: var( --opi-admin-sidebar-icon-color ) !important;
                 font-size: var( --opi-admin-sidebar-icon-size ) !important;
@@ -169,14 +203,12 @@ class OPI_Admin {
                 float: none !important;
             }
 
-            /* Third-party SVG / <img> icons */
             #adminmenu .wp-menu-image img {
                 filter: var( --opi-admin-sidebar-icon-filter ) !important;
                 width: var( --opi-admin-sidebar-icon-size ) !important;
                 height: var( --opi-admin-sidebar-icon-size ) !important;
             }
 
-            /* Menu label text */
             #adminmenu a, #adminmenu .wp-menu-name {
                 color: var( --opi-admin-sidebar-text ) !important;
                 font-size: var( --opi-admin-sidebar-font-size );

@@ -6,29 +6,12 @@ defined( 'ABSPATH' ) || exit;
 $settings = OPI_Admin_Settings::get();
 $message  = '';
 
-// Reset to defaults.
-if ( isset( $_POST['opiadmin_reset'] ) && check_admin_referer( 'opiadmin_reset_action' ) ) {
-    OPI_Admin_Settings::update( OPI_Admin_Settings::get_defaults() );
-    wp_redirect( add_query_arg( 'reset', '1', $_SERVER['REQUEST_URI'] ) );
-    exit;
+if ( isset( $_GET['saved'] ) ) {
+    $message = OPI_Tools::notice( 'success', __( 'Settings saved.', 'opi-admin' ) );
 }
 
 if ( isset( $_GET['reset'] ) ) {
-    $settings = OPI_Admin_Settings::get();
-    $message  = OPI_Tools::notice( 'success', __( 'Settings reset to defaults.', 'opi-admin' ) );
-}
-
-// Save settings.
-if ( isset( $_POST['opiadmin_save'] ) && check_admin_referer( 'opiadmin_action' ) ) {
-    $sanitized = OPI_Admin_Settings::sanitize( $_POST[ OPI_Admin_Settings::OPTION_KEY ] ?? [] );
-    OPI_Admin_Settings::update( $sanitized );
-    wp_redirect( add_query_arg( 'saved', '1', $_SERVER['REQUEST_URI'] ) );
-    exit;
-}
-
-if ( isset( $_GET['saved'] ) ) {
-    $settings = OPI_Admin_Settings::get();
-    $message  = OPI_Tools::notice( 'success', __( 'Settings saved.', 'opi-admin' ) );
+    $message = OPI_Tools::notice( 'success', __( 'Settings reset to defaults.', 'opi-admin' ) );
 }
 ?>
 
@@ -37,8 +20,9 @@ if ( isset( $_GET['saved'] ) ) {
 
     <?php echo $message; ?>
 
-    <form method="post">
+    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
         <?php wp_nonce_field( 'opiadmin_action' ); ?>
+        <input type="hidden" name="action" value="opiadmin_save">
 
         <!-- Sidebar -->
         <div class="opi-card">
@@ -284,8 +268,9 @@ if ( isset( $_GET['saved'] ) ) {
 
     </form>
 
-    <form method="post" style="margin-top: 8px;">
+    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top: 8px;">
         <?php wp_nonce_field( 'opiadmin_reset_action' ); ?>
+        <input type="hidden" name="action" value="opiadmin_reset">
         <?php submit_button( __( 'Reset to Defaults', 'opi-admin' ), 'secondary', 'opiadmin_reset', false ); ?>
     </form>
 
