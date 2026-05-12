@@ -14,7 +14,7 @@ if ( isset( $_POST['opilogin_save'] ) && check_admin_referer( 'opilogin_action' 
     $message  = OPI_Tools::notice( 'success', __( 'Settings saved.', 'opi-login' ) );
 }
 
-$field = static function( string $key ) use ( $settings ): string {
+$field = static function( string $key ): string {
     return 'opilogin[' . $key . ']';
 };
 ?>
@@ -62,13 +62,13 @@ $field = static function( string $key ) use ( $settings ): string {
             </div>
 
             <div class="opi-form-row">
-                <label for="opilogin-logo-bg"><?php _e( 'Logo Background Color', 'opi-login' ); ?></label>
+                <label for="opilogin-logo-bg-text"><?php _e( 'Logo Background Color', 'opi-login' ); ?></label>
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color" id="opilogin-logo-bg"
-                               name="<?php echo esc_attr( $field( 'logo_bg_color' ) ); ?>"
                                value="<?php echo esc_attr( $settings['logo_bg_color'] === 'transparent' ? '#ffffff' : $settings['logo_bg_color'] ); ?>">
-                        <input type="text"
+                        <input type="text" id="opilogin-logo-bg-text"
+                               name="<?php echo esc_attr( $field( 'logo_bg_color' ) ); ?>"
                                value="<?php echo esc_attr( $settings['logo_bg_color'] ); ?>"
                                maxlength="11" placeholder="transparent">
                     </div>
@@ -286,15 +286,21 @@ $field = static function( string $key ) use ( $settings ): string {
         if ( preview ) { preview.src = ''; preview.style.display = 'none'; }
     } );
 
-    // logo_bg_color: sync text input back to color input (handles "transparent")
+    // logo_bg_color: text input is the POST field; keep color picker in sync.
+    // "transparent" won't update the color picker — expected, no hex equivalent.
     ( function() {
         var colorInput = document.getElementById( 'opilogin-logo-bg' );
-        var textInput  = colorInput?.nextElementSibling;
+        var textInput  = document.getElementById( 'opilogin-logo-bg-text' );
         if ( ! colorInput || ! textInput ) return;
+
         textInput.addEventListener( 'input', function() {
             if ( /^#[0-9a-fA-F]{6}$/.test( this.value ) ) {
                 colorInput.value = this.value;
             }
+        } );
+
+        colorInput.addEventListener( 'input', function() {
+            textInput.value = this.value;
         } );
     } )();
 } )();
