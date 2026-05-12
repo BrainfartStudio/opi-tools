@@ -3,28 +3,27 @@
 
 defined( 'ABSPATH' ) || exit;
 
-class OPI_Settings {
+class OPI_Settings extends OPI_Settings_Base {
 
     const OPTION_KEY = 'opitools_theme';
 
     public static function init(): void {
-        add_action( 'admin_init',       [ __CLASS__, 'register_settings' ] );
-        add_action( 'admin_head',       [ __CLASS__, 'output_css_vars' ] );
+        add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
+        add_action( 'admin_head', [ __CLASS__, 'output_css_vars' ] );
+    }
+
+    protected static function get_option_key(): string {
+        return self::OPTION_KEY;
     }
 
     public static function get_defaults(): array {
         return [
-            'accent_color'    => '#2271b1',
-            'accent_text'     => '#ffffff',
-            'surface_color'   => '#ffffff',
-            'surface_text'    => '#1d2327',
-            'font_family'     => 'inherit',
+            'accent_color'  => '#2271b1',
+            'accent_text'   => '#ffffff',
+            'surface_color' => '#ffffff',
+            'surface_text'  => '#1d2327',
+            'font_family'   => 'inherit',
         ];
-    }
-
-    public static function get(): array {
-        $saved = get_option( self::OPTION_KEY, [] );
-        return wp_parse_args( $saved, self::get_defaults() );
     }
 
     public static function register_settings(): void {
@@ -35,27 +34,8 @@ class OPI_Settings {
         );
     }
 
-    public static function sanitize( mixed $input ): array {
-        $clean    = [];
-        $defaults = self::get_defaults();
-
-        foreach ( $defaults as $key => $default ) {
-            if ( $key === 'font_family' ) {
-                $clean[ $key ] = isset( $input[ $key ] )
-                    ? sanitize_text_field( $input[ $key ] )
-                    : $default;
-            } else {
-                // Expect a hex color
-                $val           = $input[ $key ] ?? $default;
-                $clean[ $key ] = sanitize_hex_color( $val ) ?? $default;
-            }
-        }
-
-        return $clean;
-    }
-
     public static function output_css_vars(): void {
-        $t = self::get();
+        $t    = self::get();
         $font = esc_attr( $t['font_family'] );
         ?>
         <style id="opi-tools-theme-vars">
