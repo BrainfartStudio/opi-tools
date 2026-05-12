@@ -8,11 +8,6 @@ $message  = '';
 
 if ( isset( $_POST['opilogin_reset'] ) && check_admin_referer( 'opilogin_action' ) ) {
     OPI_Login_Settings::reset();
-    wp_safe_redirect( admin_url( 'admin.php?page=opi-login&reset=1' ) );
-    exit;
-}
-
-if ( isset( $_GET['reset'] ) ) {
     $settings = OPI_Login_Settings::get();
     $message  = OPI_Tools::notice( 'success', __( 'Settings reset to defaults.', 'opi-login' ) );
 }
