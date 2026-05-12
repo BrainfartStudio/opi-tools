@@ -63,6 +63,9 @@ if ( $action === 'edit' && $post_id ) {
     $editing_post = get_post( $post_id );
 }
 
+$base_url    = admin_url( 'admin.php?page=opi-bluesky' );
+$settings_url = add_query_arg( 'view', 'settings', $base_url );
+
 ?>
 <div class="wrap">
     <h1 class="wp-heading-inline"><?php _e( 'Bluesky — Scheduled Posts', 'opi-bluesky' ); ?></h1>
@@ -70,6 +73,9 @@ if ( $action === 'edit' && $post_id ) {
     <?php if ( $action === 'list' ) : ?>
         <a href="<?php echo add_query_arg( [ 'page' => 'opi-bluesky', 'action' => 'new' ], admin_url( 'admin.php' ) ); ?>" class="page-title-action">
             <?php _e( 'Schedule New Post', 'opi-bluesky' ); ?>
+        </a>
+        <a href="<?php echo esc_url( $settings_url ); ?>" class="page-title-action">
+            <?php _e( 'Settings', 'opi-bluesky' ); ?>
         </a>
     <?php endif; ?>
 

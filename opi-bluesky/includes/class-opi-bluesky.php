@@ -37,10 +37,12 @@ class OPI_Bluesky {
     }
 
     public static function render_page(): void {
-        require_once OPIBLUESKY_PATH . 'includes/views/scheduled-posts.php';
-    }
+        $view = sanitize_key( $_GET['view'] ?? 'list' );
 
-    public static function render_settings_page(): void {
-        require_once OPIBLUESKY_PATH . 'includes/views/settings-page.php';
+        if ( $view === 'settings' ) {
+            require_once OPIBLUESKY_PATH . 'includes/views/settings-page.php';
+        } else {
+            require_once OPIBLUESKY_PATH . 'includes/views/scheduled-posts.php';
+        }
     }
 }
