@@ -60,8 +60,8 @@ class OPI_Login {
     public static function enqueue_styles(): void {
         $s = OPI_Login_Settings::get();
 
-        $logo_url = $s['logo_id']     ? wp_get_attachment_image_url( $s['logo_id'], 'full' )     : '';
-        $bg_url   = $s['bg_image_id'] ? wp_get_attachment_image_url( $s['bg_image_id'], 'full' )  : '';
+        $logo_url = $s['logo_id']     ? wp_get_attachment_image_url( $s['logo_id'], 'full' )    : '';
+        $bg_url   = $s['bg_image_id'] ? wp_get_attachment_image_url( $s['bg_image_id'], 'full' ) : '';
         $radius   = absint( $s['form_radius'] ) . 'px';
         $width    = absint( $s['form_width'] ) . 'px';
         $font     = esc_attr( $s['font_family'] ) ?: 'inherit';
@@ -76,7 +76,6 @@ class OPI_Login {
             $shadow = 'none';
         }
 
-        // logo shape → border-radius on the logo container
         $logo_shape_radius = match( $s['logo_shape'] ) {
             'circle' => '50%',
             'square' => '0%',
@@ -90,7 +89,6 @@ class OPI_Login {
                 " . ( $bg_url ? "background-image: url('{$bg_url}'); background-size: cover; background-position: center;" : '' ) . "
             }
 
-            /* #login is WP's outer wrapper — setting width + auto margins centers the form. */
             body.login #login {
                 width: {$width};
                 margin-left: auto;
@@ -129,6 +127,9 @@ class OPI_Login {
                 " . ( $logo_shape_radius ? "border-radius: {$logo_shape_radius};" : '' ) . "
             }";
         } elseif ( ! empty( $s['header_text'] ) ) {
+            $header_font  = esc_attr( $s['header_text_font'] ) ?: 'inherit';
+            $header_color = esc_attr( $s['header_text_color'] );
+
             $css .= "
             body.login h1 { display: none; }
             body.login .opilogin-header-text {
@@ -136,10 +137,16 @@ class OPI_Login {
                 text-align: center;
                 font-size: 24px;
                 font-weight: 700;
-                color: #fff;
+                color: {$header_color};
+                font-family: {$header_font};
                 margin: 0 0 20px;
                 text-shadow: 0 1px 3px rgba(0,0,0,0.3);
             }";
+
+            // Enqueue header font if different from body font
+            if ( ! empty( $s['header_text_font'] ) && $s['header_text_font'] !== 'inherit' ) {
+                OPI_Google_Fonts::enqueue( $s['header_text_font'] );
+            }
         }
 
         $css .= "\n" . $s['custom_css'];
@@ -153,10 +160,6 @@ class OPI_Login {
         }
     }
 
-    /**
-     * Inject header text above the login form when no logo is set.
-     * login_message output appears inside #login, above #loginform.
-     */
     public static function inject_header_text( string $message ): string {
         $s = OPI_Login_Settings::get();
 
@@ -171,11 +174,6 @@ class OPI_Login {
         return home_url();
     }
 
-    /**
-     * login_headertext sets the <a> title/aria-label only.
-     * When a logo is set, use the header text (or site name) for accessibility.
-     * When no logo, return site name — the visible heading is handled by inject_header_text().
-     */
     public static function header_text(): string {
         $s = OPI_Login_Settings::get();
         return esc_html( $s['header_text'] ) ?: get_bloginfo( 'name' );
@@ -186,7 +184,6 @@ class OPI_Login {
     }
 
     public static function enqueue_admin_scripts( string $hook ): void {
-        // Submenu under opi-tools generates hook: 'opi-tools_page_{slug}'
         if ( $hook !== 'opi-tools_page_opi-login' ) {
             return;
         }

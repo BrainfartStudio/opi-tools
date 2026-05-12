@@ -109,6 +109,31 @@ $field = static function( string $key ): string {
                     </p>
                 </div>
             </div>
+
+            <div class="opi-form-row">
+                <label for="opilogin-header-text-color"><?php _e( 'Header Text Color', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <div class="opi-color-pair">
+                        <input type="color" id="opilogin-header-text-color"
+                               name="<?php echo esc_attr( $field( 'header_text_color' ) ); ?>"
+                               value="<?php echo esc_attr( $settings['header_text_color'] ); ?>">
+                        <input type="text"
+                               value="<?php echo esc_attr( $settings['header_text_color'] ); ?>"
+                               maxlength="7" placeholder="#ffffff">
+                    </div>
+                </div>
+            </div>
+
+            <div class="opi-form-row">
+                <label><?php _e( 'Header Text Font', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <?php OPI_Google_Fonts::render_selector(
+                        $field( 'header_text_font' ),
+                        $settings['header_text_font']
+                    ); ?>
+                    <p class="description"><?php _e( 'Only applies when Header Text is used (no logo set).', 'opi-login' ); ?></p>
+                </div>
+            </div>
         </div>
 
         <?php // ── Section 2: Background ─────────────────────────────────── ?>
@@ -285,6 +310,7 @@ $field = static function( string $key ): string {
                         $field( 'font_family' ),
                         $settings['font_family']
                     ); ?>
+                    <p class="description"><?php _e( 'Applied to all text on the login page.', 'opi-login' ); ?></p>
                 </div>
             </div>
         </div>
@@ -317,7 +343,6 @@ $field = static function( string $key ): string {
 
 <script>
 ( function() {
-    // Media picker buttons — bound here so OPI is guaranteed defined by opi-admin.js
     document.getElementById( 'opilogin-logo-choose' )?.addEventListener( 'click', function() {
         OPI.media(
             '<?php echo esc_js( __( 'Choose Logo', 'opi-login' ) ); ?>',
@@ -334,7 +359,6 @@ $field = static function( string $key ): string {
         );
     } );
 
-    // Remove logo
     document.getElementById( 'opilogin-logo-remove' )?.addEventListener( 'click', function( e ) {
         e.preventDefault();
         document.getElementById( 'opilogin-logo-id' ).value = 0;
@@ -342,7 +366,6 @@ $field = static function( string $key ): string {
         if ( preview ) { preview.src = ''; preview.style.display = 'none'; }
     } );
 
-    // Remove background image
     document.getElementById( 'opilogin-bg-remove' )?.addEventListener( 'click', function( e ) {
         e.preventDefault();
         document.getElementById( 'opilogin-bg-id' ).value = 0;
@@ -350,7 +373,6 @@ $field = static function( string $key ): string {
         if ( preview ) { preview.src = ''; preview.style.display = 'none'; }
     } );
 
-    // Toggle shadow options visibility
     var shadowToggle  = document.getElementById( 'opilogin-form-shadow' );
     var shadowOptions = document.getElementById( 'opilogin-shadow-options' );
     if ( shadowToggle && shadowOptions ) {
@@ -359,7 +381,6 @@ $field = static function( string $key ): string {
         } );
     }
 
-    // logo_bg_color: text input is the POST field; keep color picker in sync.
     ( function() {
         var colorInput = document.getElementById( 'opilogin-logo-bg' );
         var textInput  = document.getElementById( 'opilogin-logo-bg-text' );
