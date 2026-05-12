@@ -60,4 +60,11 @@ class OPI_Login_Settings extends OPI_Settings_Base {
 
         return $clean;
     }
+
+    /**
+     * Reset all settings to defaults.
+     */
+    public static function reset(): bool {
+        return update_option( static::get_option_key(), static::get_defaults() );
+    }
 }

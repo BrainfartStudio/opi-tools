@@ -6,6 +6,17 @@ defined( 'ABSPATH' ) || exit;
 $settings = OPI_Login_Settings::get();
 $message  = '';
 
+if ( isset( $_POST['opilogin_reset'] ) && check_admin_referer( 'opilogin_action' ) ) {
+    OPI_Login_Settings::reset();
+    wp_safe_redirect( admin_url( 'admin.php?page=opi-login&reset=1' ) );
+    exit;
+}
+
+if ( isset( $_GET['reset'] ) ) {
+    $settings = OPI_Login_Settings::get();
+    $message  = OPI_Tools::notice( 'success', __( 'Settings reset to defaults.', 'opi-login' ) );
+}
+
 if ( isset( $_POST['opilogin_save'] ) && check_admin_referer( 'opilogin_action' ) ) {
     $input    = $_POST['opilogin'] ?? [];
     $saved    = OPI_Login_Settings::sanitize( $input );
@@ -261,7 +272,12 @@ $field = static function( string $key ): string {
             </div>
         </div>
 
-        <?php submit_button( __( 'Save Settings', 'opi-login' ), 'primary', 'opilogin_save' ); ?>
+        <div style="display:flex;gap:12px;align-items:center;">
+            <?php submit_button( __( 'Save Settings', 'opi-login' ), 'primary', 'opilogin_save', false ); ?>
+            <?php submit_button( __( 'Reset to Defaults', 'opi-login' ), 'secondary', 'opilogin_reset', false, [
+                'onclick' => 'return confirm("' . esc_js( __( 'Reset all Login Customizer settings to defaults? This cannot be undone.', 'opi-login' ) ) . '")',
+            ] ); ?>
+        </div>
 
     </form>
 </div>
@@ -302,7 +318,6 @@ $field = static function( string $key ): string {
     } );
 
     // logo_bg_color: text input is the POST field; keep color picker in sync.
-    // "transparent" won't update the color picker — expected, no hex equivalent.
     ( function() {
         var colorInput = document.getElementById( 'opilogin-logo-bg' );
         var textInput  = document.getElementById( 'opilogin-logo-bg-text' );
