@@ -50,8 +50,7 @@ $field = static function( string $key ): string {
                     <input type="hidden" id="opilogin-logo-id"
                            name="<?php echo esc_attr( $field( 'logo_id' ) ); ?>"
                            value="<?php echo esc_attr( $settings['logo_id'] ); ?>">
-                    <button type="button" class="button"
-                            onclick="OPI.media( '<?php esc_attr_e( 'Choose Logo', 'opi-login' ); ?>', 'opilogin-logo-id', 'opilogin-logo-preview' )">
+                    <button type="button" class="button" id="opilogin-logo-choose">
                         <?php _e( 'Choose Logo', 'opi-login' ); ?>
                     </button>
                     <button type="button" class="button" id="opilogin-logo-remove">
@@ -135,8 +134,7 @@ $field = static function( string $key ): string {
                     <input type="hidden" id="opilogin-bg-id"
                            name="<?php echo esc_attr( $field( 'bg_image_id' ) ); ?>"
                            value="<?php echo esc_attr( $settings['bg_image_id'] ); ?>">
-                    <button type="button" class="button"
-                            onclick="OPI.media( '<?php esc_attr_e( 'Choose Background Image', 'opi-login' ); ?>', 'opilogin-bg-id', 'opilogin-bg-preview' )">
+                    <button type="button" class="button" id="opilogin-bg-choose">
                         <?php _e( 'Choose Image', 'opi-login' ); ?>
                     </button>
                     <button type="button" class="button" id="opilogin-bg-remove">
@@ -270,6 +268,23 @@ $field = static function( string $key ): string {
 
 <script>
 ( function() {
+    // Media picker buttons — bound here so OPI is guaranteed defined by opi-admin.js
+    document.getElementById( 'opilogin-logo-choose' )?.addEventListener( 'click', function() {
+        OPI.media(
+            '<?php echo esc_js( __( 'Choose Logo', 'opi-login' ) ); ?>',
+            'opilogin-logo-id',
+            'opilogin-logo-preview'
+        );
+    } );
+
+    document.getElementById( 'opilogin-bg-choose' )?.addEventListener( 'click', function() {
+        OPI.media(
+            '<?php echo esc_js( __( 'Choose Background Image', 'opi-login' ) ); ?>',
+            'opilogin-bg-id',
+            'opilogin-bg-preview'
+        );
+    } );
+
     // Remove logo
     document.getElementById( 'opilogin-logo-remove' )?.addEventListener( 'click', function( e ) {
         e.preventDefault();
