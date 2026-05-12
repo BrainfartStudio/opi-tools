@@ -72,7 +72,7 @@ if ( isset( $_GET['saved'] ) ) {
             </div>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Text / Icon Color', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Text Color', 'opi-admin' ); ?></label>
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
@@ -81,6 +81,21 @@ if ( isset( $_GET['saved'] ) ) {
                                data-css-var="--opi-admin-sidebar-text">
                         <input type="text" maxlength="7"
                                value="<?php echo esc_attr( $settings['sidebar_text'] ); ?>"
+                               placeholder="#a7aaad">
+                    </div>
+                </div>
+            </div>
+
+            <div class="opi-form-row">
+                <label><?php _e( 'Icon Color', 'opi-admin' ); ?></label>
+                <div class="opi-form-control">
+                    <div class="opi-color-pair">
+                        <input type="color"
+                               name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_icon_color]"
+                               value="<?php echo esc_attr( $settings['sidebar_icon_color'] ); ?>"
+                               data-css-var="--opi-admin-sidebar-icon-color">
+                        <input type="text" maxlength="7"
+                               value="<?php echo esc_attr( $settings['sidebar_icon_color'] ); ?>"
                                placeholder="#a7aaad">
                     </div>
                 </div>
@@ -128,6 +143,25 @@ if ( isset( $_GET['saved'] ) ) {
                                value="<?php echo esc_attr( $settings['sidebar_open_bg'] ); ?>"
                                placeholder="#191e23">
                     </div>
+                </div>
+            </div>
+
+            <div class="opi-form-row">
+                <label><?php _e( 'Third-party Icon Style', 'opi-admin' ); ?></label>
+                <div class="opi-form-control">
+                    <select name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_icon_filter]"
+                            id="opiadmin-icon-filter">
+                        <option value="light" <?php selected( $settings['sidebar_icon_filter'], 'light' ); ?>>
+                            <?php _e( 'Light (white)', 'opi-admin' ); ?>
+                        </option>
+                        <option value="dark" <?php selected( $settings['sidebar_icon_filter'], 'dark' ); ?>>
+                            <?php _e( 'Dark (black)', 'opi-admin' ); ?>
+                        </option>
+                        <option value="none" <?php selected( $settings['sidebar_icon_filter'], 'none' ); ?>>
+                            <?php _e( 'None (original colors)', 'opi-admin' ); ?>
+                        </option>
+                    </select>
+                    <p class="description"><?php _e( 'Controls the color of SVG/image icons from third-party plugins.', 'opi-admin' ); ?></p>
                 </div>
             </div>
 
