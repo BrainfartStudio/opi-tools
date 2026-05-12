@@ -40,8 +40,8 @@
 
         var link = document.getElementById( fontLinkId );
         if ( ! link ) {
-            link    = document.createElement( 'link' );
-            link.id = fontLinkId;
+            link     = document.createElement( 'link' );
+            link.id  = fontLinkId;
             link.rel = 'stylesheet';
             document.head.appendChild( link );
         }
@@ -81,6 +81,41 @@
 
         if ( cssVar ) {
             setCssVar( cssVar, el.value + cssUnit );
+        }
+    } );
+
+    /**
+     * Hex text input sync.
+     *
+     * When a valid hex is typed into the text half of an .opi-color-pair,
+     * update the sibling color input AND fire the CSS var update immediately.
+     * Core JS (opi-admin.js) handles color→text sync; this handles text→CSS var.
+     */
+    document.addEventListener( 'input', function( e ) {
+        var el = e.target;
+
+        if ( ! el.closest( '.opi-color-pair' ) ) {
+            return;
+        }
+        if ( el.type !== 'text' ) {
+            return;
+        }
+
+        var val = el.value.trim();
+        if ( ! /^#[0-9a-fA-F]{6}$/.test( val ) ) {
+            return;
+        }
+
+        // Sync sibling color input value.
+        var colorInput = el.closest( '.opi-color-pair' ).querySelector( 'input[type="color"]' );
+        if ( colorInput ) {
+            colorInput.value = val;
+
+            // Apply CSS var if the color input has one.
+            var cssVar = colorInput.getAttribute( 'data-css-var' );
+            if ( cssVar ) {
+                setCssVar( cssVar, val );
+            }
         }
     } );
 
