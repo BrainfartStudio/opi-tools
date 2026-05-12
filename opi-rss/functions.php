@@ -2,7 +2,7 @@
 /**
  * Plugin Name: OPI RSS Aggregator
  * Plugin URI:  https://github.com/BrainfartStudio/opi-tools
- * Description: RSS feed aggregator for OPI Tools.
+ * Description: RSS feed aggregator for the OPI Tools plugin suite.
  * Version:     1.0.0
  * Author:      Mitchell Opitz
  * License:     GPL-2.0-or-later
@@ -15,45 +15,29 @@ define( 'OPIRSS_VERSION', '1.0.0' );
 define( 'OPIRSS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'OPIRSS_URL', plugin_dir_url( __FILE__ ) );
 
-add_action( 'plugins_loaded', function() {
-    require_once OPIRSS_PATH . 'includes/database.php';
-    require_once OPIRSS_PATH . 'includes/functions.php';
-    require_once OPIRSS_PATH . 'includes/cron.php';
-    require_once OPIRSS_PATH . 'includes/admin.php';
-    require_once OPIRSS_PATH . 'includes/blocks.php';
-
-    add_action( 'opi_tools_register_plugins', 'opirss_register_with_core' );
-}, 5 );
-
-function opirss_register_with_core(): void {
-    OPI_Tools::register_plugin(
-        'opi-rss',
-        'RSS Aggregator',
-        OPIRSS_VERSION,
-        'opirss_render_page'
-    );
-}
-
 register_activation_hook( __FILE__, 'opirss_activate' );
-register_deactivation_hook( __FILE__, 'opirss_deactivate' );
 
 function opirss_activate(): void {
-    require_once OPIRSS_PATH . 'includes/database.php';
-    opirss_create_tables();
-    if ( ! wp_next_scheduled( 'opirss_fetch_feeds' ) ) {
-        wp_schedule_event( time(), 'thirty_minutes', 'opirss_fetch_feeds' );
-    }
+    require_once OPIRSS_PATH . 'includes/class-opi-rss-db.php';
+    OPI_RSS_DB::create_tables();
 }
+
+register_deactivation_hook( __FILE__, 'opirss_deactivate' );
 
 function opirss_deactivate(): void {
-    wp_clear_scheduled_hook( 'opirss_fetch_feeds' );
+    require_once OPIRSS_PATH . 'includes/class-opi-rss.php';
+    OPI_RSS::deactivate();
 }
 
-add_filter( 'cron_schedules', 'opirss_cron_schedule' );
-function opirss_cron_schedule( array $schedules ): array {
-    $schedules['thirty_minutes'] = [
-        'interval' => 1800,
-        'display'  => __( 'Every 30 Minutes', 'opi-rss' ),
-    ];
-    return $schedules;
+register_uninstall_hook( __FILE__, 'opirss_uninstall' );
+
+function opirss_uninstall(): void {
+    // Tables are intentionally left in place on uninstall to preserve feed data.
+    // Remove if you want clean uninstall: global $wpdb; $wpdb->query("DROP TABLE...")
 }
+
+add_action( 'plugins_loaded', function() {
+    require_once OPIRSS_PATH . 'includes/class-opi-rss-db.php';
+    require_once OPIRSS_PATH . 'includes/class-opi-rss.php';
+    OPI_RSS::init();
+}, 5 );
