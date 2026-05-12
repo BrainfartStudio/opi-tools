@@ -7,141 +7,295 @@ $settings = OPI_Login_Settings::get();
 $message  = '';
 
 if ( isset( $_POST['opilogin_save'] ) && check_admin_referer( 'opilogin_action' ) ) {
-    OPI_Login_Settings::save( $_POST );
+    $input    = $_POST['opilogin'] ?? [];
+    $saved    = OPI_Login_Settings::sanitize( $input );
+    OPI_Login_Settings::update( $saved );
     $settings = OPI_Login_Settings::get();
-    $message  = '<div class="notice notice-success"><p>Settings saved.</p></div>';
+    $message  = OPI_Tools::notice( 'success', __( 'Settings saved.', 'opi-login' ) );
 }
+
+$field = static function( string $key ) use ( $settings ): string {
+    return 'opilogin[' . $key . ']';
+};
 ?>
 
 <div class="wrap">
-    <h1>OPI Login Customizer</h1>
+    <h1><?php _e( 'Login Customizer', 'opi-login' ); ?></h1>
 
     <?php echo $message; ?>
+
+    <p>
+        <a href="<?php echo esc_url( wp_login_url() ); ?>" target="_blank" class="button">
+            <?php _e( 'Preview Login Page', 'opi-login' ); ?>
+        </a>
+    </p>
 
     <form method="post">
         <?php wp_nonce_field( 'opilogin_action' ); ?>
 
-        <table class="form-table" role="presentation">
+        <?php // ── Section 1: Logo ───────────────────────────────────────── ?>
+        <div class="opi-card">
+            <h2 class="opi-section-header"><?php _e( 'Logo', 'opi-login' ); ?></h2>
 
-            <tr>
-                <th scope="row"><label for="logo_id">Logo</label></th>
-                <td>
+            <div class="opi-form-row">
+                <label><?php _e( 'Logo Image', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
                     <?php if ( $settings['logo_id'] ) : ?>
-                        <img src="<?php echo esc_url( wp_get_attachment_image_url( $settings['logo_id'], 'medium' ) ); ?>"
+                        <img id="opilogin-logo-preview"
+                             src="<?php echo esc_url( wp_get_attachment_image_url( $settings['logo_id'], 'medium' ) ); ?>"
                              style="max-height:80px;display:block;margin-bottom:8px;">
+                    <?php else : ?>
+                        <img id="opilogin-logo-preview" src="" style="max-height:80px;display:none;margin-bottom:8px;">
                     <?php endif; ?>
-                    <input type="hidden" id="logo_id" name="logo_id"
+                    <input type="hidden" id="opilogin-logo-id"
+                           name="<?php echo esc_attr( $field( 'logo_id' ) ); ?>"
                            value="<?php echo esc_attr( $settings['logo_id'] ); ?>">
-                    <button type="button" class="button" id="opilogin-logo-pick">Choose Logo</button>
-                    <?php if ( $settings['logo_id'] ) : ?>
-                        <button type="button" class="button" id="opilogin-logo-remove">Remove</button>
-                    <?php endif; ?>
-                    <p class="description">Replaces the WordPress logo on the login page.</p>
-                </td>
-            </tr>
+                    <button type="button" class="button"
+                            onclick="OPI.media( '<?php esc_attr_e( 'Choose Logo', 'opi-login' ); ?>', 'opilogin-logo-id', 'opilogin-logo-preview' )">
+                        <?php _e( 'Choose Logo', 'opi-login' ); ?>
+                    </button>
+                    <button type="button" class="button" id="opilogin-logo-remove">
+                        <?php _e( 'Remove', 'opi-login' ); ?>
+                    </button>
+                    <p class="description"><?php _e( 'Replaces the WordPress logo on the login page.', 'opi-login' ); ?></p>
+                </div>
+            </div>
 
-            <tr>
-                <th scope="row"><label for="header_text">Header Text</label></th>
-                <td>
-                    <input type="text" id="header_text" name="header_text"
+            <div class="opi-form-row">
+                <label for="opilogin-logo-bg"><?php _e( 'Logo Background Color', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <div class="opi-color-pair">
+                        <input type="color" id="opilogin-logo-bg"
+                               name="<?php echo esc_attr( $field( 'logo_bg_color' ) ); ?>"
+                               value="<?php echo esc_attr( $settings['logo_bg_color'] === 'transparent' ? '#ffffff' : $settings['logo_bg_color'] ); ?>">
+                        <input type="text"
+                               value="<?php echo esc_attr( $settings['logo_bg_color'] ); ?>"
+                               maxlength="11" placeholder="transparent">
+                    </div>
+                    <p class="description"><?php _e( 'Background behind the logo image. Use "transparent" to show none.', 'opi-login' ); ?></p>
+                </div>
+            </div>
+
+            <div class="opi-form-row">
+                <label><?php _e( 'Logo Shape', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <?php foreach ( [ 'none' => __( 'None', 'opi-login' ), 'circle' => __( 'Circle', 'opi-login' ), 'square' => __( 'Square', 'opi-login' ) ] as $val => $label ) : ?>
+                        <label style="margin-right:16px;">
+                            <input type="radio"
+                                   name="<?php echo esc_attr( $field( 'logo_shape' ) ); ?>"
+                                   value="<?php echo esc_attr( $val ); ?>"
+                                   <?php checked( $settings['logo_shape'], $val ); ?>>
+                            <?php echo esc_html( $label ); ?>
+                        </label>
+                    <?php endforeach; ?>
+                    <p class="description"><?php _e( 'Controls the border-radius of the logo container.', 'opi-login' ); ?></p>
+                </div>
+            </div>
+
+            <div class="opi-form-row">
+                <label for="opilogin-header-text"><?php _e( 'Header Text', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <input type="text" id="opilogin-header-text"
+                           name="<?php echo esc_attr( $field( 'header_text' ) ); ?>"
                            class="regular-text"
                            value="<?php echo esc_attr( $settings['header_text'] ); ?>">
-                    <p class="description">Shown above the login form if no logo is set, or alongside it.</p>
-                </td>
-            </tr>
+                    <p class="description"><?php _e( 'Shown as the logo link title text. Defaults to site name if empty.', 'opi-login' ); ?></p>
+                </div>
+            </div>
+        </div>
 
-            <tr>
-                <th scope="row"><label for="bg_color">Background Color</label></th>
-                <td>
-                    <input type="color" id="bg_color" name="bg_color"
-                           value="<?php echo esc_attr( $settings['bg_color'] ); ?>">
-                </td>
-            </tr>
+        <?php // ── Section 2: Background ─────────────────────────────────── ?>
+        <div class="opi-card">
+            <h2 class="opi-section-header"><?php _e( 'Background', 'opi-login' ); ?></h2>
 
-            <tr>
-                <th scope="row"><label for="bg_image_id">Background Image</label></th>
-                <td>
+            <div class="opi-form-row">
+                <label for="opilogin-bg-color"><?php _e( 'Background Color', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <div class="opi-color-pair">
+                        <input type="color" id="opilogin-bg-color"
+                               name="<?php echo esc_attr( $field( 'bg_color' ) ); ?>"
+                               value="<?php echo esc_attr( $settings['bg_color'] ); ?>">
+                        <input type="text"
+                               value="<?php echo esc_attr( $settings['bg_color'] ); ?>"
+                               maxlength="7" placeholder="#f0f0f1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="opi-form-row">
+                <label><?php _e( 'Background Image', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
                     <?php if ( $settings['bg_image_id'] ) : ?>
-                        <img src="<?php echo esc_url( wp_get_attachment_image_url( $settings['bg_image_id'], 'medium' ) ); ?>"
+                        <img id="opilogin-bg-preview"
+                             src="<?php echo esc_url( wp_get_attachment_image_url( $settings['bg_image_id'], 'medium' ) ); ?>"
                              style="max-height:80px;display:block;margin-bottom:8px;">
+                    <?php else : ?>
+                        <img id="opilogin-bg-preview" src="" style="max-height:80px;display:none;margin-bottom:8px;">
                     <?php endif; ?>
-                    <input type="hidden" id="bg_image_id" name="bg_image_id"
+                    <input type="hidden" id="opilogin-bg-id"
+                           name="<?php echo esc_attr( $field( 'bg_image_id' ) ); ?>"
                            value="<?php echo esc_attr( $settings['bg_image_id'] ); ?>">
-                    <button type="button" class="button" id="opilogin-bg-pick">Choose Image</button>
-                    <?php if ( $settings['bg_image_id'] ) : ?>
-                        <button type="button" class="button" id="opilogin-bg-remove">Remove</button>
-                    <?php endif; ?>
-                </td>
-            </tr>
+                    <button type="button" class="button"
+                            onclick="OPI.media( '<?php esc_attr_e( 'Choose Background Image', 'opi-login' ); ?>', 'opilogin-bg-id', 'opilogin-bg-preview' )">
+                        <?php _e( 'Choose Image', 'opi-login' ); ?>
+                    </button>
+                    <button type="button" class="button" id="opilogin-bg-remove">
+                        <?php _e( 'Remove', 'opi-login' ); ?>
+                    </button>
+                    <p class="description"><?php _e( 'Displayed as a full-cover background. Overrides background color.', 'opi-login' ); ?></p>
+                </div>
+            </div>
+        </div>
 
-            <tr>
-                <th scope="row"><label for="form_bg_color">Form Background</label></th>
-                <td>
-                    <input type="color" id="form_bg_color" name="form_bg_color"
-                           value="<?php echo esc_attr( $settings['form_bg_color'] ); ?>">
-                </td>
-            </tr>
+        <?php // ── Section 3: Form ───────────────────────────────────────── ?>
+        <div class="opi-card">
+            <h2 class="opi-section-header"><?php _e( 'Form', 'opi-login' ); ?></h2>
 
-            <tr>
-                <th scope="row"><label for="form_radius">Form Border Radius (px)</label></th>
-                <td>
-                    <input type="number" id="form_radius" name="form_radius"
+            <div class="opi-form-row">
+                <label for="opilogin-form-bg"><?php _e( 'Form Background', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <div class="opi-color-pair">
+                        <input type="color" id="opilogin-form-bg"
+                               name="<?php echo esc_attr( $field( 'form_bg_color' ) ); ?>"
+                               value="<?php echo esc_attr( $settings['form_bg_color'] ); ?>">
+                        <input type="text"
+                               value="<?php echo esc_attr( $settings['form_bg_color'] ); ?>"
+                               maxlength="7" placeholder="#ffffff">
+                    </div>
+                </div>
+            </div>
+
+            <div class="opi-form-row">
+                <label for="opilogin-form-radius"><?php _e( 'Border Radius (px)', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <input type="number" id="opilogin-form-radius"
+                           name="<?php echo esc_attr( $field( 'form_radius' ) ); ?>"
                            min="0" max="40" step="1"
                            value="<?php echo esc_attr( $settings['form_radius'] ); ?>">
-                </td>
-            </tr>
+                </div>
+            </div>
 
-            <tr>
-                <th scope="row">Form Shadow</th>
-                <td>
+            <div class="opi-form-row">
+                <label for="opilogin-form-width"><?php _e( 'Form Width (px)', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <input type="number" id="opilogin-form-width"
+                           name="<?php echo esc_attr( $field( 'form_width' ) ); ?>"
+                           min="200" max="600" step="10"
+                           value="<?php echo esc_attr( $settings['form_width'] ); ?>">
+                </div>
+            </div>
+
+            <div class="opi-form-row">
+                <label><?php _e( 'Form Shadow', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
                     <label>
-                        <input type="checkbox" name="form_shadow" value="1"
-                            <?php checked( $settings['form_shadow'] ); ?>>
-                        Show box shadow on login form
+                        <input type="checkbox"
+                               name="<?php echo esc_attr( $field( 'form_shadow' ) ); ?>"
+                               value="1"
+                               <?php checked( $settings['form_shadow'] ); ?>>
+                        <?php _e( 'Show box shadow on login form', 'opi-login' ); ?>
                     </label>
-                </td>
-            </tr>
+                </div>
+            </div>
+        </div>
 
-            <tr>
-                <th scope="row"><label for="button_color">Button Color</label></th>
-                <td>
-                    <input type="color" id="button_color" name="button_color"
-                           value="<?php echo esc_attr( $settings['button_color'] ); ?>">
-                </td>
-            </tr>
+        <?php // ── Section 4: Button ─────────────────────────────────────── ?>
+        <div class="opi-card">
+            <h2 class="opi-section-header"><?php _e( 'Button', 'opi-login' ); ?></h2>
 
-            <tr>
-                <th scope="row"><label for="button_text">Button Text Color</label></th>
-                <td>
-                    <input type="color" id="button_text" name="button_text"
-                           value="<?php echo esc_attr( $settings['button_text'] ); ?>">
-                </td>
-            </tr>
+            <div class="opi-form-row">
+                <label for="opilogin-btn-color"><?php _e( 'Button Color', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <div class="opi-color-pair">
+                        <input type="color" id="opilogin-btn-color"
+                               name="<?php echo esc_attr( $field( 'button_color' ) ); ?>"
+                               value="<?php echo esc_attr( $settings['button_color'] ); ?>">
+                        <input type="text"
+                               value="<?php echo esc_attr( $settings['button_color'] ); ?>"
+                               maxlength="7" placeholder="#2271b1">
+                    </div>
+                </div>
+            </div>
 
-            <tr>
-                <th scope="row"><label for="font_family">Font Family</label></th>
-                <td>
-                    <input type="text" id="font_family" name="font_family"
-                           class="regular-text"
-                           value="<?php echo esc_attr( $settings['font_family'] ); ?>"
-                           placeholder="inherit">
-                    <p class="description">e.g. <code>'Inter', sans-serif</code></p>
-                </td>
-            </tr>
+            <div class="opi-form-row">
+                <label for="opilogin-btn-text"><?php _e( 'Button Text Color', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <div class="opi-color-pair">
+                        <input type="color" id="opilogin-btn-text"
+                               name="<?php echo esc_attr( $field( 'button_text' ) ); ?>"
+                               value="<?php echo esc_attr( $settings['button_text'] ); ?>">
+                        <input type="text"
+                               value="<?php echo esc_attr( $settings['button_text'] ); ?>"
+                               maxlength="7" placeholder="#ffffff">
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            <tr>
-                <th scope="row"><label for="custom_css">Custom CSS</label></th>
-                <td>
-                    <textarea id="custom_css" name="custom_css" rows="8"
-                              class="large-text code"><?php echo esc_textarea( $settings['custom_css'] ); ?></textarea>
-                </td>
-            </tr>
+        <?php // ── Section 5: Typography ─────────────────────────────────── ?>
+        <div class="opi-card">
+            <h2 class="opi-section-header"><?php _e( 'Typography', 'opi-login' ); ?></h2>
 
-        </table>
+            <div class="opi-form-row">
+                <label><?php _e( 'Font Family', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <?php OPI_Google_Fonts::render_selector(
+                        $field( 'font_family' ),
+                        $settings['font_family']
+                    ); ?>
+                </div>
+            </div>
+        </div>
 
-        <p class="submit">
-            <button type="submit" name="opilogin_save" class="button button-primary">Save Settings</button>
-        </p>
+        <?php // ── Section 6: Custom CSS ─────────────────────────────────── ?>
+        <div class="opi-card">
+            <h2 class="opi-section-header"><?php _e( 'Custom CSS', 'opi-login' ); ?></h2>
+
+            <div class="opi-form-row">
+                <label for="opilogin-custom-css"><?php _e( 'Additional CSS', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <textarea id="opilogin-custom-css"
+                              name="<?php echo esc_attr( $field( 'custom_css' ) ); ?>"
+                              rows="10" class="large-text code"
+                    ><?php echo esc_textarea( $settings['custom_css'] ); ?></textarea>
+                    <p class="description"><?php _e( 'Appended to the login page stylesheet. Targets body.login.', 'opi-login' ); ?></p>
+                </div>
+            </div>
+        </div>
+
+        <?php submit_button( __( 'Save Settings', 'opi-login' ), 'primary', 'opilogin_save' ); ?>
 
     </form>
 </div>
+
+<script>
+( function() {
+    // Remove logo
+    document.getElementById( 'opilogin-logo-remove' )?.addEventListener( 'click', function( e ) {
+        e.preventDefault();
+        document.getElementById( 'opilogin-logo-id' ).value = 0;
+        var preview = document.getElementById( 'opilogin-logo-preview' );
+        if ( preview ) { preview.src = ''; preview.style.display = 'none'; }
+    } );
+
+    // Remove background image
+    document.getElementById( 'opilogin-bg-remove' )?.addEventListener( 'click', function( e ) {
+        e.preventDefault();
+        document.getElementById( 'opilogin-bg-id' ).value = 0;
+        var preview = document.getElementById( 'opilogin-bg-preview' );
+        if ( preview ) { preview.src = ''; preview.style.display = 'none'; }
+    } );
+
+    // logo_bg_color: sync text input back to color input (handles "transparent")
+    ( function() {
+        var colorInput = document.getElementById( 'opilogin-logo-bg' );
+        var textInput  = colorInput?.nextElementSibling;
+        if ( ! colorInput || ! textInput ) return;
+        textInput.addEventListener( 'input', function() {
+            if ( /^#[0-9a-fA-F]{6}$/.test( this.value ) ) {
+                colorInput.value = this.value;
+            }
+        } );
+    } )();
+} )();
+</script>
