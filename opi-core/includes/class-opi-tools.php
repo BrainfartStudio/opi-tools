@@ -66,14 +66,13 @@ class OPI_Tools {
         );
 
         foreach ( self::$plugins as $slug => $plugin ) {
-            add_menu_page(
+            add_submenu_page(
+                'opi-tools',
                 $plugin['label'],
                 $plugin['label'],
                 $plugin['capability'],
                 $slug,
-                $plugin['page_cb'],
-                'dashicons-admin-generic',
-                31
+                $plugin['page_cb']
             );
         }
     }
