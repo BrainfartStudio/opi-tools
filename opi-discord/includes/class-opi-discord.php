@@ -68,7 +68,8 @@ class OPI_Discord {
     }
 
     public static function queue_all_posts(): int {
-        if ( empty( OPI_Discord_Settings::get_webhook_url() ) ) return 0;
+        $webhook = OPI_Discord_Settings::get_webhook_url();
+        if ( empty( $webhook ) ) return 0;
 
         $posts = get_posts([
             'numberposts' => -1,
@@ -80,7 +81,10 @@ class OPI_Discord {
 
         if ( empty( $posts ) ) return 0;
 
-        OPI_Discord_Queue::enqueue( array_column( $posts, 'ID' ) );
+        foreach ( $posts as $post ) {
+            self::send( $post );
+            sleep( 2 );
+        }
 
         return count( $posts );
     }
