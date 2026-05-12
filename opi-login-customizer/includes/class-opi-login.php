@@ -59,8 +59,8 @@ class OPI_Login {
     public static function enqueue_styles(): void {
         $s = OPI_Login_Settings::get();
 
-        $logo_url = $s['logo_id']     ? wp_get_attachment_image_url( $s['logo_id'], 'full' )    : '';
-        $bg_url   = $s['bg_image_id'] ? wp_get_attachment_image_url( $s['bg_image_id'], 'full' ) : '';
+        $logo_url = $s['logo_id']     ? wp_get_attachment_image_url( $s['logo_id'], 'full' )     : '';
+        $bg_url   = $s['bg_image_id'] ? wp_get_attachment_image_url( $s['bg_image_id'], 'full' )  : '';
         $radius   = absint( $s['form_radius'] ) . 'px';
         $width    = absint( $s['form_width'] ) . 'px';
         $font     = esc_attr( $s['font_family'] ) ?: 'inherit';
@@ -88,11 +88,14 @@ class OPI_Login {
                 font-family: {$font};
                 " . ( $bg_url ? "background-image: url('{$bg_url}'); background-size: cover; background-position: center;" : '' ) . "
             }
+
+            /* #login is WP's outer wrapper — setting width + auto margins centers the form. */
             body.login #login {
                 width: {$width};
                 margin-left: auto;
                 margin-right: auto;
             }
+
             body.login #loginform,
             body.login #lostpasswordform,
             body.login #registerform {
@@ -102,11 +105,13 @@ class OPI_Login {
                 width: 100%;
                 box-sizing: border-box;
             }
+
             body.login .button-primary {
                 background: {$s['button_color']} !important;
                 border-color: {$s['button_color']} !important;
                 color: {$s['button_text']} !important;
             }
+
             body.login .button-primary:hover {
                 opacity: 0.9;
             }
