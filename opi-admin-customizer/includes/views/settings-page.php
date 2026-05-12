@@ -6,14 +6,30 @@ defined( 'ABSPATH' ) || exit;
 $settings = OPI_Admin_Settings::get();
 $message  = '';
 
+// Reset to defaults.
+if ( isset( $_POST['opiadmin_reset'] ) && check_admin_referer( 'opiadmin_reset_action' ) ) {
+    OPI_Admin_Settings::update( OPI_Admin_Settings::get_defaults() );
+    wp_redirect( add_query_arg( 'reset', '1', $_SERVER['REQUEST_URI'] ) );
+    exit;
+}
+
+if ( isset( $_GET['reset'] ) ) {
+    $settings = OPI_Admin_Settings::get();
+    $message  = OPI_Tools::notice( 'success', __( 'Settings reset to defaults.', 'opi-admin' ) );
+}
+
+// Save settings.
 if ( isset( $_POST['opiadmin_save'] ) && check_admin_referer( 'opiadmin_action' ) ) {
     $sanitized = OPI_Admin_Settings::sanitize( $_POST[ OPI_Admin_Settings::OPTION_KEY ] ?? [] );
     OPI_Admin_Settings::update( $sanitized );
+    wp_redirect( add_query_arg( 'saved', '1', $_SERVER['REQUEST_URI'] ) );
+    exit;
+}
+
+if ( isset( $_GET['saved'] ) ) {
     $settings = OPI_Admin_Settings::get();
     $message  = OPI_Tools::notice( 'success', __( 'Settings saved.', 'opi-admin' ) );
 }
-
-OPI_Google_Fonts::enqueue( $settings['font_family'] );
 ?>
 
 <div class="wrap">
@@ -81,6 +97,36 @@ OPI_Google_Fonts::enqueue( $settings['font_family'] );
                         <input type="text" maxlength="7"
                                value="<?php echo esc_attr( $settings['sidebar_highlight'] ); ?>"
                                placeholder="#2271b1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="opi-form-row">
+                <label><?php _e( 'Submenu Background', 'opi-admin' ); ?></label>
+                <div class="opi-form-control">
+                    <div class="opi-color-pair">
+                        <input type="color"
+                               name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_submenu_bg]"
+                               value="<?php echo esc_attr( $settings['sidebar_submenu_bg'] ); ?>"
+                               data-css-var="--opi-admin-sidebar-submenu-bg">
+                        <input type="text" maxlength="7"
+                               value="<?php echo esc_attr( $settings['sidebar_submenu_bg'] ); ?>"
+                               placeholder="#32373c">
+                    </div>
+                </div>
+            </div>
+
+            <div class="opi-form-row">
+                <label><?php _e( 'Open Item Background', 'opi-admin' ); ?></label>
+                <div class="opi-form-control">
+                    <div class="opi-color-pair">
+                        <input type="color"
+                               name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_open_bg]"
+                               value="<?php echo esc_attr( $settings['sidebar_open_bg'] ); ?>"
+                               data-css-var="--opi-admin-sidebar-open-bg">
+                        <input type="text" maxlength="7"
+                               value="<?php echo esc_attr( $settings['sidebar_open_bg'] ); ?>"
+                               placeholder="#191e23">
                     </div>
                 </div>
             </div>
@@ -203,4 +249,10 @@ OPI_Google_Fonts::enqueue( $settings['font_family'] );
         <?php submit_button( __( 'Save Settings', 'opi-admin' ), 'primary', 'opiadmin_save' ); ?>
 
     </form>
+
+    <form method="post" style="margin-top: 8px;">
+        <?php wp_nonce_field( 'opiadmin_reset_action' ); ?>
+        <?php submit_button( __( 'Reset to Defaults', 'opi-admin' ), 'secondary', 'opiadmin_reset', false ); ?>
+    </form>
+
 </div>
