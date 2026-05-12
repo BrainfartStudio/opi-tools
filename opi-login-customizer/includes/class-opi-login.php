@@ -82,6 +82,9 @@ class OPI_Login {
             default  => '',
         };
 
+        $form_text = esc_attr( $s['form_text_color'] );
+        $link      = esc_attr( $s['link_color'] );
+
         $css = "
             body.login {
                 background-color: {$s['bg_color']};
@@ -103,6 +106,31 @@ class OPI_Login {
                 box-shadow: {$shadow};
                 width: 100%;
                 box-sizing: border-box;
+            }
+
+            body.login #loginform label,
+            body.login #lostpasswordform label,
+            body.login #registerform label {
+                color: {$form_text};
+            }
+
+            body.login #loginform input[type='text'],
+            body.login #loginform input[type='password'],
+            body.login #lostpasswordform input[type='text'],
+            body.login #registerform input[type='text'],
+            body.login #registerform input[type='email'] {
+                color: {$form_text};
+            }
+
+            body.login #nav a,
+            body.login #backtoblog a {
+                color: {$link};
+            }
+
+            body.login #nav a:hover,
+            body.login #backtoblog a:hover {
+                color: {$link};
+                opacity: 0.8;
             }
 
             body.login .button-primary {
@@ -143,7 +171,6 @@ class OPI_Login {
                 text-shadow: 0 1px 3px rgba(0,0,0,0.3);
             }";
 
-            // Enqueue header font if different from body font
             if ( ! empty( $s['header_text_font'] ) && $s['header_text_font'] !== 'inherit' ) {
                 OPI_Google_Fonts::enqueue( $s['header_text_font'] );
             }

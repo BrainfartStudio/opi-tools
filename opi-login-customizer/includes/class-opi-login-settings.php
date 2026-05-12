@@ -22,12 +22,14 @@ class OPI_Login_Settings extends OPI_Settings_Base {
             'bg_color'            => '#f0f0f1',
             'bg_image_id'         => 0,
             'form_bg_color'       => '#ffffff',
+            'form_text_color'     => '#3c434a',
             'form_radius'         => 4,
             'form_width'          => 320,
             'form_shadow'         => true,
             'form_shadow_color'   => '#000000',
             'form_shadow_blur'    => 24,
             'form_shadow_spread'  => 0,
+            'link_color'          => '#2271b1',
             'button_color'        => '#2271b1',
             'button_text'         => '#ffffff',
             'font_family'         => 'inherit',
@@ -61,7 +63,7 @@ class OPI_Login_Settings extends OPI_Settings_Base {
         $clean['form_shadow_blur']   = min( 100, absint( $input['form_shadow_blur']   ?? 24 ) );
         $clean['form_shadow_spread'] = min( 50,  absint( $input['form_shadow_spread'] ?? 0  ) );
 
-        // header_text_font — free text (Google Font name)
+        // free-text font fields
         $clean['header_text_font'] = sanitize_text_field( $input['header_text_font'] ?? 'inherit' );
 
         // custom_css — strip tags, not sanitize_text_field (preserves newlines/braces)

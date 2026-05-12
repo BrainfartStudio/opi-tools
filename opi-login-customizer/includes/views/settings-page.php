@@ -197,6 +197,21 @@ $field = static function( string $key ): string {
             </div>
 
             <div class="opi-form-row">
+                <label for="opilogin-form-text-color"><?php _e( 'Form Text Color', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <div class="opi-color-pair">
+                        <input type="color" id="opilogin-form-text-color"
+                               name="<?php echo esc_attr( $field( 'form_text_color' ) ); ?>"
+                               value="<?php echo esc_attr( $settings['form_text_color'] ); ?>">
+                        <input type="text"
+                               value="<?php echo esc_attr( $settings['form_text_color'] ); ?>"
+                               maxlength="7" placeholder="#3c434a">
+                    </div>
+                    <p class="description"><?php _e( 'Color for labels and input text inside the form.', 'opi-login' ); ?></p>
+                </div>
+            </div>
+
+            <div class="opi-form-row">
                 <label for="opilogin-form-radius"><?php _e( 'Border Radius (px)', 'opi-login' ); ?></label>
                 <div class="opi-form-control">
                     <input type="number" id="opilogin-form-radius"
@@ -311,6 +326,21 @@ $field = static function( string $key ): string {
                         $settings['font_family']
                     ); ?>
                     <p class="description"><?php _e( 'Applied to all text on the login page.', 'opi-login' ); ?></p>
+                </div>
+            </div>
+
+            <div class="opi-form-row">
+                <label for="opilogin-link-color"><?php _e( 'Link Color', 'opi-login' ); ?></label>
+                <div class="opi-form-control">
+                    <div class="opi-color-pair">
+                        <input type="color" id="opilogin-link-color"
+                               name="<?php echo esc_attr( $field( 'link_color' ) ); ?>"
+                               value="<?php echo esc_attr( $settings['link_color'] ); ?>">
+                        <input type="text"
+                               value="<?php echo esc_attr( $settings['link_color'] ); ?>"
+                               maxlength="7" placeholder="#2271b1">
+                    </div>
+                    <p class="description"><?php _e( 'Color for "Lost your password?" and "Go to site" links.', 'opi-login' ); ?></p>
                 </div>
             </div>
         </div>
