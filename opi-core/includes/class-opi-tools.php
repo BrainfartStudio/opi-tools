@@ -85,6 +85,7 @@ class OPI_Tools {
 
         foreach ( array_keys( self::$plugins ) as $slug ) {
             $opi_pages[] = 'toplevel_page_' . $slug;
+            $opi_pages[] = 'opi-tools_page_' . $slug;
         }
 
         if ( ! in_array( $hook, $opi_pages, true ) ) {
