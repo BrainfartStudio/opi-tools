@@ -41,15 +41,139 @@ class OPI_Bluesky {
             'opi-bluesky',
             'Bluesky',
             OPIBLUESKY_VERSION,
-            [ __CLASS__, 'render_page' ]
+            [ __CLASS__, 'render_page' ],
+            'manage_options',
+            [ __CLASS__, 'widget_cb' ],
+            [ __CLASS__, 'health_cb' ]
         );
     }
 
-    public static function render_page(): void {
-        require_once OPIBLUESKY_PATH . 'includes/views/scheduled-posts.php';
+    /**
+     * Dashboard widget data.
+     * warn if any category has fewer than 3 pending posts.
+     * error if not authenticated.
+     */
+    public static function widget_cb(): array {
+        if ( ! OPI_Bluesky_Auth::is_authenticated() ) {
+            return [
+                'status' => 'error',
+                'label'  => 'Bluesky',
+                'value'  => 'Not connected',
+            ];
+        }
+
+        $pending = get_posts( [
+            'post_type'      => OPI_Bluesky_Post_Type::CPT,
+            'post_status'    => 'publish',
+            'numberposts'    => -1,
+            'meta_query'     => [
+                [
+                    'key'     => '_bsky_sent',
+                    'value'   => '0',
+                    'compare' => '=',
+                ],
+            ],
+        ] );
+
+        $count  = count( $pending );
+        $status = 'ok';
+
+        // Check per-category counts against the low-queue threshold.
+        $slots = OPI_Bluesky_Category_Scheduler::get_slots();
+        if ( ! empty( $slots ) ) {
+            $category_ids = array_unique( array_column( $slots, 'category_id' ) );
+            foreach ( $category_ids as $cat_id ) {
+                $cat_posts = get_posts( [
+                    'post_type'   => OPI_Bluesky_Post_Type::CPT,
+                    'post_status' => 'publish',
+                    'numberposts' => -1,
+                    'tax_query'   => [
+                        [
+                            'taxonomy' => 'bsky_post_category',
+                            'field'    => 'term_id',
+                            'terms'    => $cat_id,
+                        ],
+                    ],
+                    'meta_query'  => [
+                        [
+                            'key'     => '_bsky_sent',
+                            'value'   => '0',
+                            'compare' => '=',
+                        ],
+                    ],
+                ] );
+                if ( count( $cat_posts ) < 3 ) {
+                    $status = 'warn';
+                    break;
+                }
+            }
+        }
+
+        return [
+            'status' => $status,
+            'label'  => 'Bluesky',
+            'value'  => $count . ' post' . ( $count !== 1 ? 's' : '' ) . ' scheduled',
+        ];
     }
 
-    public static function render_settings_page(): void {
-        require_once OPIBLUESKY_PATH . 'includes/views/settings-page.php';
+    /**
+     * Health check data.
+     * Mirrors widget_cb severity with a message and action URL.
+     */
+    public static function health_cb(): array {
+        if ( ! OPI_Bluesky_Auth::is_authenticated() ) {
+            return [
+                'severity'   => 'error',
+                'message'    => 'Bluesky is not connected. Check your credentials.',
+                'action_url' => admin_url( 'admin.php?page=opi-bluesky&view=settings' ),
+            ];
+        }
+
+        $slots = OPI_Bluesky_Category_Scheduler::get_slots();
+        if ( ! empty( $slots ) ) {
+            $category_ids = array_unique( array_column( $slots, 'category_id' ) );
+            foreach ( $category_ids as $cat_id ) {
+                $cat_posts = get_posts( [
+                    'post_type'   => OPI_Bluesky_Post_Type::CPT,
+                    'post_status' => 'publish',
+                    'numberposts' => 3,
+                    'tax_query'   => [
+                        [
+                            'taxonomy' => 'bsky_post_category',
+                            'field'    => 'term_id',
+                            'terms'    => $cat_id,
+                        ],
+                    ],
+                    'meta_query'  => [
+                        [
+                            'key'     => '_bsky_sent',
+                            'value'   => '0',
+                            'compare' => '=',
+                        ],
+                    ],
+                ] );
+                if ( count( $cat_posts ) < 3 ) {
+                    $term = get_term( $cat_id, 'bsky_post_category' );
+                    $name = ! is_wp_error( $term ) && $term ? $term->name : 'Unknown';
+                    return [
+                        'severity'   => 'warn',
+                        'message'    => "Bluesky category \"{$name}\" has fewer than 3 posts remaining.",
+                        'action_url' => admin_url( 'admin.php?page=opi-bluesky&view=settings' ),
+                    ];
+                }
+            }
+        }
+
+        return [ 'severity' => 'ok' ];
+    }
+
+    public static function render_page(): void {
+        $view = sanitize_key( $_GET['view'] ?? 'list' );
+
+        if ( $view === 'settings' ) {
+            require_once OPIBLUESKY_PATH . 'includes/views/settings-page.php';
+        } else {
+            require_once OPIBLUESKY_PATH . 'includes/views/scheduled-posts.php';
+        }
     }
 }
