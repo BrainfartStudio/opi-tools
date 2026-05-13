@@ -7,6 +7,7 @@ class OPI_RSS {
 
     public static function init(): void {
         require_once OPIRSS_PATH . 'includes/class-opi-rss-db.php';
+        require_once OPIRSS_PATH . 'includes/class-opi-rss-settings.php';
         require_once OPIRSS_PATH . 'includes/class-opi-rss-cron.php';
         require_once OPIRSS_PATH . 'includes/blocks.php';
 
@@ -49,6 +50,9 @@ class OPI_RSS {
                 break;
             case 'error':
                 require_once OPIRSS_PATH . 'includes/views/feed-error.php';
+                break;
+            case 'settings':
+                require_once OPIRSS_PATH . 'includes/views/feed-settings.php';
                 break;
             case 'add':
             case 'edit':
@@ -128,6 +132,15 @@ class OPI_RSS {
                     ? __( 'Feed fetched successfully.', 'opi-rss' )
                     : __( 'Failed to fetch feed. Check the URL.', 'opi-rss' );
                 self::redirect_with_notice( 'list', $type, $msg );
+                break;
+
+            case 'save_settings':
+                $input = $_POST['opirss_settings'] ?? [];
+                // Checkboxes are absent from POST when unchecked — normalize before sanitize.
+                $input['cron_inactive'] = ! empty( $input['cron_inactive'] );
+                OPI_RSS_Settings::update( OPI_RSS_Settings::sanitize( $input ) );
+                OPI_RSS_Cron::reschedule();
+                self::redirect_with_notice( 'settings', 'success', __( 'Settings saved.', 'opi-rss' ) );
                 break;
         }
     }

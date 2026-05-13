@@ -17,6 +17,9 @@ $feeds = OPI_RSS_DB::get_feeds_with_latest( OPI_RSS_DB::STATUS_ACTIVE );
         <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-rss&view=inactive' ) ); ?>" class="button" style="margin-left:8px;">
             <?php _e( 'Inactive / Error Feeds', 'opi-rss' ); ?>
         </a>
+        <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-rss&view=settings' ) ); ?>" class="button" style="margin-left:8px;">
+            <?php _e( 'Settings', 'opi-rss' ); ?>
+        </a>
     </p>
 
     <div class="opi-card" style="padding:0;">
