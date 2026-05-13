@@ -22,16 +22,17 @@ $badge_map = [
             <thead>
                 <tr>
                     <th style="width:80px;"><?php _e( 'Status', 'opi-rss' ); ?></th>
-                    <th style="width:180px;"><?php _e( 'Name', 'opi-rss' ); ?></th>
-                    <th><?php _e( 'URL', 'opi-rss' ); ?></th>
-                    <th style="width:120px;"><?php _e( 'Last Fetch', 'opi-rss' ); ?></th>
+                    <th style="width:160px;"><?php _e( 'Name', 'opi-rss' ); ?></th>
+                    <th style="width:35%;"><?php _e( 'Latest Article', 'opi-rss' ); ?></th>
+                    <th style="width:100px;"><?php _e( 'Last Post', 'opi-rss' ); ?></th>
+                    <th style="width:100px;"><?php _e( 'Last Fetch', 'opi-rss' ); ?></th>
                     <th style="width:180px;"><?php _e( 'Actions', 'opi-rss' ); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ( empty( $feeds ) ) : ?>
                     <tr>
-                        <td colspan="5"><?php _e( 'No inactive or pending feeds.', 'opi-rss' ); ?></td>
+                        <td colspan="6"><?php _e( 'No inactive or pending feeds.', 'opi-rss' ); ?></td>
                     </tr>
                 <?php else : ?>
                     <?php foreach ( $feeds as $feed ) :
@@ -51,9 +52,21 @@ $badge_map = [
                             </td>
                             <td><?php echo esc_html( stripslashes( $feed->name ) ); ?></td>
                             <td>
-                                <a href="<?php echo esc_url( $feed->url ); ?>" target="_blank">
-                                    <?php echo esc_html( $feed->url ); ?>
-                                </a>
+                                <?php if ( ! empty( $feed->latest_article ) ) : ?>
+                                    <a href="<?php echo esc_url( $feed->latest_article_link ); ?>" target="_blank">
+                                        <?php
+                                        $title = stripslashes( $feed->latest_article );
+                                        echo esc_html( strlen( $title ) > 80 ? substr( $title, 0, 80 ) . '…' : $title );
+                                        ?>
+                                    </a>
+                                <?php else : ?>
+                                    <em><?php _e( 'No articles found', 'opi-rss' ); ?></em>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php echo ! empty( $feed->latest_article_date )
+                                    ? esc_html( OPI_RSS::time_diff( $feed->latest_article_date ) )
+                                    : '—'; ?>
                             </td>
                             <td>
                                 <?php echo $feed->last_fetch
