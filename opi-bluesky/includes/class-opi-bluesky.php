@@ -48,11 +48,6 @@ class OPI_Bluesky {
         );
     }
 
-    /**
-     * Dashboard widget data.
-     * warn if any category has fewer than 3 pending posts.
-     * error if not authenticated.
-     */
     public static function widget_cb(): array {
         if ( ! OPI_Bluesky_Auth::is_authenticated() ) {
             return [
@@ -63,10 +58,10 @@ class OPI_Bluesky {
         }
 
         $pending = get_posts( [
-            'post_type'      => OPI_Bluesky_Post_Type::CPT,
-            'post_status'    => 'publish',
-            'numberposts'    => -1,
-            'meta_query'     => [
+            'post_type'   => OPI_Bluesky_Post_Type::CPT,
+            'post_status' => 'publish',
+            'numberposts' => -1,
+            'meta_query'  => [
                 [
                     'key'     => '_bsky_sent',
                     'value'   => '0',
@@ -78,7 +73,6 @@ class OPI_Bluesky {
         $count  = count( $pending );
         $status = 'ok';
 
-        // Check per-category counts against the low-queue threshold.
         $slots = OPI_Bluesky_Category_Scheduler::get_slots();
         if ( ! empty( $slots ) ) {
             $category_ids = array_unique( array_column( $slots, 'category_id' ) );
@@ -116,10 +110,6 @@ class OPI_Bluesky {
         ];
     }
 
-    /**
-     * Health check data.
-     * Mirrors widget_cb severity with a message and action URL.
-     */
     public static function health_cb(): array {
         if ( ! OPI_Bluesky_Auth::is_authenticated() ) {
             return [
@@ -158,7 +148,7 @@ class OPI_Bluesky {
                     return [
                         'severity'   => 'warn',
                         'message'    => "Bluesky category \"{$name}\" has fewer than 3 posts remaining.",
-                        'action_url' => admin_url( 'admin.php?page=opi-bluesky&view=settings' ),
+                        'action_url' => admin_url( 'admin.php?page=opi-bluesky&view=categories' ),
                     ];
                 }
             }
@@ -168,12 +158,18 @@ class OPI_Bluesky {
     }
 
     public static function render_page(): void {
-        $view = sanitize_key( $_GET['view'] ?? 'list' );
+        $view = sanitize_key( $_GET['view'] ?? 'posts' );
 
-        if ( $view === 'settings' ) {
-            require_once OPIBLUESKY_PATH . 'includes/views/settings-page.php';
-        } else {
-            require_once OPIBLUESKY_PATH . 'includes/views/scheduled-posts.php';
+        switch ( $view ) {
+            case 'settings':
+                require_once OPIBLUESKY_PATH . 'includes/views/settings-page.php';
+                break;
+            case 'categories':
+                require_once OPIBLUESKY_PATH . 'includes/views/categories.php';
+                break;
+            default:
+                require_once OPIBLUESKY_PATH . 'includes/views/scheduled-posts.php';
+                break;
         }
     }
 }

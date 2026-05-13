@@ -20,16 +20,17 @@ if ( isset( $_POST['opibluesky_save_post'] ) && check_admin_referer( 'opibluesky
             $scheduled_at = 0;
         }
     }
-    $type    = sanitize_key( $_POST['bsky_type'] ?? 'post' );
-    $ref_uri = sanitize_text_field( $_POST['bsky_ref_uri'] ?? '' );
-    $ref_cid = sanitize_text_field( $_POST['bsky_ref_cid'] ?? '' );
-    $edit_id = intval( $_POST['bsky_post_id'] ?? 0 );
+    $type         = sanitize_key( $_POST['bsky_type'] ?? 'post' );
+    $ref_uri      = sanitize_text_field( $_POST['bsky_ref_uri'] ?? '' );
+    $ref_cid      = sanitize_text_field( $_POST['bsky_ref_cid'] ?? '' );
+    $edit_id      = intval( $_POST['bsky_post_id'] ?? 0 );
+    $category_ids = array_map( 'absint', (array) ( $_POST['bsky_category_ids'] ?? [] ) );
 
     $content_required = ( $type !== 'repost' );
-    $invalid          = ! $scheduled_at || ( $content_required && ! $content );
+    $invalid = ! $scheduled_at || ( $content_required && ! $content );
 
     if ( $invalid ) {
-        $message = OPI_Tools::notice( 'error', __( 'Scheduled date is required. Content is required for posts and replies.', 'opi-bluesky' ) );
+        $message = '<div class="notice notice-error"><p>' . __( 'Scheduled date is required. Content is required for posts and replies.', 'opi-bluesky' ) . '</p></div>';
         $action  = isset( $_POST['bsky_post_id'] ) && intval( $_POST['bsky_post_id'] ) ? 'edit' : 'new';
     } else {
         if ( $edit_id ) {
@@ -38,10 +39,11 @@ if ( isset( $_POST['opibluesky_save_post'] ) && check_admin_referer( 'opibluesky
             update_post_meta( $edit_id, '_bsky_type',         $type );
             update_post_meta( $edit_id, '_bsky_ref_uri',      $ref_uri );
             update_post_meta( $edit_id, '_bsky_ref_cid',      $ref_cid );
-            $message = OPI_Tools::notice( 'success', __( 'Post updated.', 'opi-bluesky' ) );
+            wp_set_object_terms( $edit_id, $category_ids, 'bsky_post_category' );
+            $message = '<div class="notice notice-success"><p>' . __( 'Post updated.', 'opi-bluesky' ) . '</p></div>';
         } else {
-            OPI_Bluesky_Post_Type::create( $content, $scheduled_at, $type, $ref_uri, $ref_cid );
-            $message = OPI_Tools::notice( 'success', __( 'Post scheduled.', 'opi-bluesky' ) );
+            OPI_Bluesky_Post_Type::create( $content, $scheduled_at, $type, $ref_uri, $ref_cid, $category_ids );
+            $message = '<div class="notice notice-success"><p>' . __( 'Post scheduled.', 'opi-bluesky' ) . '</p></div>';
         }
         $action = 'list';
     }
@@ -51,7 +53,7 @@ if ( isset( $_POST['opibluesky_save_post'] ) && check_admin_referer( 'opibluesky
 
 if ( $action === 'delete' && $post_id && check_admin_referer( 'opibluesky_delete_' . $post_id ) ) {
     OPI_Bluesky_Post_Type::delete( $post_id );
-    $message = OPI_Tools::notice( 'success', __( 'Post deleted.', 'opi-bluesky' ) );
+    $message = '<div class="notice notice-success"><p>' . __( 'Post deleted.', 'opi-bluesky' ) . '</p></div>';
     $action  = 'list';
 }
 
@@ -62,20 +64,31 @@ if ( $action === 'edit' && $post_id ) {
     $editing_post = get_post( $post_id );
 }
 
+$all_categories = get_terms( [ 'taxonomy' => 'bsky_post_category', 'hide_empty' => false ] );
+if ( is_wp_error( $all_categories ) ) {
+    $all_categories = [];
+}
+
 ?>
 <div class="wrap">
-    <h1 class="wp-heading-inline"><?php _e( 'Bluesky — Scheduled Posts', 'opi-bluesky' ); ?></h1>
+    <h1 class="wp-heading-inline"><?php _e( 'Bluesky', 'opi-bluesky' ); ?></h1>
 
     <?php if ( $action === 'list' ) : ?>
-        <a href="<?php echo add_query_arg( [ 'page' => 'opi-bluesky', 'action' => 'new' ], admin_url( 'admin.php' ) ); ?>" class="page-title-action">
+        <a href="<?php echo esc_url( add_query_arg( [ 'page' => 'opi-bluesky', 'action' => 'new' ], admin_url( 'admin.php' ) ) ); ?>" class="page-title-action">
             <?php _e( 'Schedule New Post', 'opi-bluesky' ); ?>
-        </a>
-        <a href="<?php echo add_query_arg( [ 'page' => 'opi-bluesky', 'view' => 'settings' ], admin_url( 'admin.php' ) ); ?>" class="page-title-action">
-            <?php _e( 'Settings', 'opi-bluesky' ); ?>
         </a>
     <?php endif; ?>
 
     <hr class="wp-header-end">
+
+    <nav class="nav-tab-wrapper" style="margin-bottom:20px;">
+        <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-bluesky' ) ); ?>"
+           class="nav-tab nav-tab-active"><?php _e( 'Scheduled Posts', 'opi-bluesky' ); ?></a>
+        <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-bluesky&view=categories' ) ); ?>"
+           class="nav-tab"><?php _e( 'Categories', 'opi-bluesky' ); ?></a>
+        <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-bluesky&view=settings' ) ); ?>"
+           class="nav-tab"><?php _e( 'Settings', 'opi-bluesky' ); ?></a>
+    </nav>
 
     <?php echo $message; ?>
 
@@ -87,7 +100,9 @@ if ( $action === 'edit' && $post_id ) {
         ?>
 
         <?php if ( empty( $list_table->items ) ) : ?>
-            <?php echo OPI_Tools::notice( 'info', __( 'No scheduled posts. Click "Schedule New Post" to create one.', 'opi-bluesky' ) ); ?>
+            <div class="notice notice-info">
+                <p><?php _e( 'No scheduled posts. Click "Schedule New Post" to create one.', 'opi-bluesky' ); ?></p>
+            </div>
         <?php else : ?>
             <form method="get">
                 <input type="hidden" name="page" value="opi-bluesky">
@@ -126,13 +141,19 @@ if ( $action === 'edit' && $post_id ) {
     <?php elseif ( in_array( $action, [ 'new', 'edit' ], true ) ) : ?>
 
         <?php
-        $is_edit      = $action === 'edit' && $editing_post;
-        $content      = $is_edit ? $editing_post->post_content : '';
-        $scheduled_at = $is_edit ? get_post_meta( $editing_post->ID, '_bsky_scheduled_at', true ) : '';
-        $type         = $is_edit ? ( get_post_meta( $editing_post->ID, '_bsky_type', true ) ?: 'post' ) : 'post';
-        $ref_uri      = $is_edit ? get_post_meta( $editing_post->ID, '_bsky_ref_uri', true ) : '';
-        $ref_cid      = $is_edit ? get_post_meta( $editing_post->ID, '_bsky_ref_cid', true ) : '';
-        $scheduled_val = $scheduled_at ? date( 'Y-m-d\TH:i', (int) $scheduled_at ) : '';
+        $is_edit         = $action === 'edit' && $editing_post;
+        $content         = $is_edit ? $editing_post->post_content : '';
+        $scheduled_at    = $is_edit ? get_post_meta( $editing_post->ID, '_bsky_scheduled_at', true ) : '';
+        $type            = $is_edit ? ( get_post_meta( $editing_post->ID, '_bsky_type', true ) ?: 'post' ) : 'post';
+        $ref_uri         = $is_edit ? get_post_meta( $editing_post->ID, '_bsky_ref_uri', true ) : '';
+        $ref_cid         = $is_edit ? get_post_meta( $editing_post->ID, '_bsky_ref_cid', true ) : '';
+        $scheduled_val   = $scheduled_at ? date( 'Y-m-d\TH:i', (int) $scheduled_at ) : '';
+        $assigned_cats   = $is_edit
+            ? wp_get_object_terms( $editing_post->ID, 'bsky_post_category', [ 'fields' => 'ids' ] )
+            : [];
+        if ( is_wp_error( $assigned_cats ) ) {
+            $assigned_cats = [];
+        }
         ?>
 
         <h2><?php echo $is_edit ? __( 'Edit Scheduled Post', 'opi-bluesky' ) : __( 'Schedule New Post', 'opi-bluesky' ); ?></h2>
@@ -180,6 +201,30 @@ if ( $action === 'edit' && $post_id ) {
                     </td>
                 </tr>
                 <tr>
+                    <th scope="row"><?php _e( 'Category', 'opi-bluesky' ); ?></th>
+                    <td>
+                        <?php if ( empty( $all_categories ) ) : ?>
+                            <p class="description">
+                                <?php _e( 'No categories yet.', 'opi-bluesky' ); ?>
+                                <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-bluesky&view=categories' ) ); ?>"><?php _e( 'Create one', 'opi-bluesky' ); ?></a>.
+                            </p>
+                        <?php else : ?>
+                            <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                                <?php foreach ( $all_categories as $cat ) : ?>
+                                    <label style="display:flex;align-items:center;gap:4px;">
+                                        <input type="checkbox"
+                                               name="bsky_category_ids[]"
+                                               value="<?php echo esc_attr( $cat->term_id ); ?>"
+                                               <?php checked( in_array( $cat->term_id, $assigned_cats, true ) ); ?>>
+                                        <?php echo esc_html( $cat->name ); ?>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                            <p class="description"><?php _e( 'Assign to one or more categories for category-based scheduling.', 'opi-bluesky' ); ?></p>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <tr>
                     <th scope="row"><label for="bsky_scheduled_at"><?php _e( 'Schedule Date & Time', 'opi-bluesky' ); ?></label></th>
                     <td>
                         <input type="datetime-local" id="bsky_scheduled_at" name="bsky_scheduled_at"
@@ -195,7 +240,7 @@ if ( $action === 'edit' && $post_id ) {
                 'opibluesky_save_post'
             ); ?>
 
-            <a href="<?php echo add_query_arg( [ 'page' => 'opi-bluesky' ], admin_url( 'admin.php' ) ); ?>" class="button">
+            <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-bluesky' ) ); ?>" class="button">
                 <?php _e( 'Cancel', 'opi-bluesky' ); ?>
             </a>
         </form>

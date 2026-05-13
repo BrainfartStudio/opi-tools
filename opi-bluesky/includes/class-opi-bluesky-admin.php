@@ -9,6 +9,9 @@ class OPI_Bluesky_Admin {
         add_action( 'admin_enqueue_scripts',              [ __CLASS__, 'enqueue_scripts' ] );
         add_action( 'wp_ajax_opibluesky_test_connection', [ __CLASS__, 'ajax_test_connection' ] );
         add_action( 'wp_ajax_opibluesky_delete_post',    [ __CLASS__, 'ajax_delete_post' ] );
+        add_action( 'wp_ajax_opibluesky_add_category',    [ __CLASS__, 'ajax_add_category' ] );
+        add_action( 'wp_ajax_opibluesky_delete_category', [ __CLASS__, 'ajax_delete_category' ] );
+        add_action( 'wp_ajax_opibluesky_rename_category', [ __CLASS__, 'ajax_rename_category' ] );
     }
 
     public static function enqueue_scripts( string $hook ): void {
@@ -79,5 +82,73 @@ class OPI_Bluesky_Admin {
 
         OPI_Bluesky_Post_Type::delete( $post_id );
         wp_send_json_success();
+    }
+
+    public static function ajax_add_category(): void {
+        check_ajax_referer( 'opibluesky_nonce', 'nonce' );
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Insufficient permissions.' );
+        }
+
+        $name = sanitize_text_field( $_POST['name'] ?? '' );
+        if ( ! $name ) {
+            wp_send_json_error( 'Name is required.' );
+        }
+
+        $result = wp_insert_term( $name, 'bsky_post_category' );
+
+        if ( is_wp_error( $result ) ) {
+            wp_send_json_error( $result->get_error_message() );
+        }
+
+        wp_send_json_success( [
+            'term_id' => $result['term_id'],
+            'name'    => $name,
+        ] );
+    }
+
+    public static function ajax_delete_category(): void {
+        check_ajax_referer( 'opibluesky_nonce', 'nonce' );
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Insufficient permissions.' );
+        }
+
+        $term_id = intval( $_POST['term_id'] ?? 0 );
+        if ( ! $term_id ) {
+            wp_send_json_error( 'Invalid term ID.' );
+        }
+
+        $result = wp_delete_term( $term_id, 'bsky_post_category' );
+
+        if ( is_wp_error( $result ) ) {
+            wp_send_json_error( $result->get_error_message() );
+        }
+
+        wp_send_json_success();
+    }
+
+    public static function ajax_rename_category(): void {
+        check_ajax_referer( 'opibluesky_nonce', 'nonce' );
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Insufficient permissions.' );
+        }
+
+        $term_id = intval( $_POST['term_id'] ?? 0 );
+        $name    = sanitize_text_field( $_POST['name'] ?? '' );
+
+        if ( ! $term_id || ! $name ) {
+            wp_send_json_error( 'Term ID and name are required.' );
+        }
+
+        $result = wp_update_term( $term_id, 'bsky_post_category', [ 'name' => $name ] );
+
+        if ( is_wp_error( $result ) ) {
+            wp_send_json_error( $result->get_error_message() );
+        }
+
+        wp_send_json_success( [ 'name' => $name ] );
     }
 }
