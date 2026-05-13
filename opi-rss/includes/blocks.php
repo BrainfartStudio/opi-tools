@@ -41,7 +41,7 @@ function opirss_register_blocks(): void {
 
 function opirss_render_recent_items( array $attributes ): string {
     $limit = isset( $attributes['limit'] ) ? intval( $attributes['limit'] ) : 20;
-    $items = opirss_get_recent_items( $limit );
+    $items = OPI_RSS_DB::get_recent_items( $limit );
 
     wp_enqueue_script(
         'opirss-recent-items',
@@ -54,24 +54,24 @@ function opirss_render_recent_items( array $attributes ): string {
     ob_start();
     ?>
     <div class="rss-agg-recent-items">
-        <?php if ( empty( $items ) ): ?>
-            <p>No items found.</p>
-        <?php else: ?>
-            <ul style="padding: 0;">
-                <?php foreach ( $items as $item ): ?>
-                    <li class="wpra-item feed-item" style="margin-bottom: 20px;">
+        <?php if ( empty( $items ) ) : ?>
+            <p><?php _e( 'No items found.', 'opi-rss' ); ?></p>
+        <?php else : ?>
+            <ul style="padding:0;">
+                <?php foreach ( $items as $item ) : ?>
+                    <li class="wpra-item feed-item" style="margin-bottom:20px;">
                         <a href="<?php echo esc_url( $item->link ); ?>" target="_blank" rel="nofollow">
                             <?php echo esc_html( stripslashes( $item->title ) ); ?>
                         </a>
-                        <div class="wprss-feed-meta" style="font-size: 0.9em; color: #666; margin-top: 5px;">
+                        <div class="wprss-feed-meta" style="font-size:0.9em;color:#666;margin-top:5px;">
                             <span class="feed-source">
-                                Source:
+                                <?php _e( 'Source:', 'opi-rss' ); ?>
                                 <a href="<?php echo esc_url( $item->feed_url ); ?>" target="_blank" rel="nofollow">
                                     <?php echo esc_html( stripslashes( $item->feed_name ) ); ?>
                                 </a>
                             </span>
                             <span class="time-ago">
-                                | Published <?php echo opirss_time_diff( $item->pub_date ); ?>
+                                | <?php printf( __( 'Published %s', 'opi-rss' ), OPI_RSS::time_diff( $item->pub_date ) ); ?>
                             </span>
                         </div>
                     </li>
@@ -84,7 +84,7 @@ function opirss_render_recent_items( array $attributes ): string {
 }
 
 function opirss_render_active_sources( array $attributes ): string {
-    $sources = opirss_get_active_sources();
+    $sources = OPI_RSS_DB::get_active_sources();
 
     wp_enqueue_script(
         'opirss-active-sources',
@@ -97,12 +97,12 @@ function opirss_render_active_sources( array $attributes ): string {
     ob_start();
     ?>
     <div class="rss-agg-active-sources" data-wpra-template="sources">
-        <?php if ( empty( $sources ) ): ?>
-            <p>No active sources found.</p>
-        <?php else: ?>
+        <?php if ( empty( $sources ) ) : ?>
+            <p><?php _e( 'No active sources found.', 'opi-rss' ); ?></p>
+        <?php else : ?>
             <ul>
-                <?php foreach ( $sources as $source ): ?>
-                    <li class="wpra-item" style="margin-bottom: 5px;">
+                <?php foreach ( $sources as $source ) : ?>
+                    <li class="wpra-item" style="margin-bottom:5px;">
                         <span class="feed-source">
                             <a href="<?php echo esc_url( $source->url ); ?>" target="_blank">
                                 <?php echo esc_html( $source->name ); ?>

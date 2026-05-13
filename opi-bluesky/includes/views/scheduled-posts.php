@@ -20,17 +20,18 @@ if ( isset( $_POST['opibluesky_save_post'] ) && check_admin_referer( 'opibluesky
             $scheduled_at = 0;
         }
     }
-    $type    = sanitize_key( $_POST['bsky_type'] ?? 'post' );
-    $ref_uri = sanitize_text_field( $_POST['bsky_ref_uri'] ?? '' );
-    $ref_cid = sanitize_text_field( $_POST['bsky_ref_cid'] ?? '' );
-    $edit_id = intval( $_POST['bsky_post_id'] ?? 0 );
+    $type         = sanitize_key( $_POST['bsky_type'] ?? 'post' );
+    $ref_uri      = sanitize_text_field( $_POST['bsky_ref_uri'] ?? '' );
+    $ref_cid      = sanitize_text_field( $_POST['bsky_ref_cid'] ?? '' );
+    $edit_id      = intval( $_POST['bsky_post_id'] ?? 0 );
+    $category_ids = array_map( 'absint', (array) ( $_POST['bsky_category_ids'] ?? [] ) );
 
     // Content is required except for reposts (which can be plain reposts with no text).
     $content_required = ( $type !== 'repost' );
     $invalid = ! $scheduled_at || ( $content_required && ! $content );
 
     if ( $invalid ) {
-        $message = '<div class="notice notice-error"><p>' . __( 'Scheduled date is required. Content is required for posts and replies.', 'opi-bluesky' ) . '</p></div>';
+        $message = OPI_Tools::notice( 'error', __( 'Scheduled date is required. Content is required for posts and replies.', 'opi-bluesky' ) );
         $action  = isset( $_POST['bsky_post_id'] ) && intval( $_POST['bsky_post_id'] ) ? 'edit' : 'new';
     } else {
         if ( $edit_id ) {
@@ -39,10 +40,11 @@ if ( isset( $_POST['opibluesky_save_post'] ) && check_admin_referer( 'opibluesky
             update_post_meta( $edit_id, '_bsky_type',         $type );
             update_post_meta( $edit_id, '_bsky_ref_uri',      $ref_uri );
             update_post_meta( $edit_id, '_bsky_ref_cid',      $ref_cid );
-            $message = '<div class="notice notice-success"><p>' . __( 'Post updated.', 'opi-bluesky' ) . '</p></div>';
+            wp_set_object_terms( $edit_id, $category_ids, 'bsky_post_category' );
+            $message = OPI_Tools::notice( 'success', __( 'Post updated.', 'opi-bluesky' ) );
         } else {
-            OPI_Bluesky_Post_Type::create( $content, $scheduled_at, $type, $ref_uri, $ref_cid );
-            $message = '<div class="notice notice-success"><p>' . __( 'Post scheduled.', 'opi-bluesky' ) . '</p></div>';
+            OPI_Bluesky_Post_Type::create( $content, $scheduled_at, $type, $ref_uri, $ref_cid, $category_ids );
+            $message = OPI_Tools::notice( 'success', __( 'Post scheduled.', 'opi-bluesky' ) );
         }
         $action = 'list';
     }
@@ -52,7 +54,7 @@ if ( isset( $_POST['opibluesky_save_post'] ) && check_admin_referer( 'opibluesky
 
 if ( $action === 'delete' && $post_id && check_admin_referer( 'opibluesky_delete_' . $post_id ) ) {
     OPI_Bluesky_Post_Type::delete( $post_id );
-    $message = '<div class="notice notice-success"><p>' . __( 'Post deleted.', 'opi-bluesky' ) . '</p></div>';
+    $message = OPI_Tools::notice( 'success', __( 'Post deleted.', 'opi-bluesky' ) );
     $action  = 'list';
 }
 
@@ -63,6 +65,9 @@ if ( $action === 'edit' && $post_id ) {
     $editing_post = get_post( $post_id );
 }
 
+$base_url    = admin_url( 'admin.php?page=opi-bluesky' );
+$settings_url = add_query_arg( 'view', 'settings', $base_url );
+
 ?>
 <div class="wrap">
     <h1 class="wp-heading-inline"><?php _e( 'Bluesky — Scheduled Posts', 'opi-bluesky' ); ?></h1>
@@ -70,6 +75,9 @@ if ( $action === 'edit' && $post_id ) {
     <?php if ( $action === 'list' ) : ?>
         <a href="<?php echo add_query_arg( [ 'page' => 'opi-bluesky', 'action' => 'new' ], admin_url( 'admin.php' ) ); ?>" class="page-title-action">
             <?php _e( 'Schedule New Post', 'opi-bluesky' ); ?>
+        </a>
+        <a href="<?php echo esc_url( $settings_url ); ?>" class="page-title-action">
+            <?php _e( 'Settings', 'opi-bluesky' ); ?>
         </a>
     <?php endif; ?>
 
@@ -133,6 +141,12 @@ if ( $action === 'edit' && $post_id ) {
         $ref_uri      = $is_edit ? get_post_meta( $editing_post->ID, '_bsky_ref_uri', true ) : '';
         $ref_cid      = $is_edit ? get_post_meta( $editing_post->ID, '_bsky_ref_cid', true ) : '';
         $scheduled_val = $scheduled_at ? date( 'Y-m-d\TH:i', (int) $scheduled_at ) : '';
+
+        $all_categories    = get_terms( [ 'taxonomy' => 'bsky_post_category', 'hide_empty' => false ] );
+        if ( is_wp_error( $all_categories ) ) $all_categories = [];
+        $assigned_term_ids = $is_edit
+            ? wp_get_object_terms( $editing_post->ID, 'bsky_post_category', [ 'fields' => 'ids' ] )
+            : [];
         ?>
 
         <h2><?php echo $is_edit ? __( 'Edit Scheduled Post', 'opi-bluesky' ) : __( 'Schedule New Post', 'opi-bluesky' ); ?></h2>
@@ -187,6 +201,25 @@ if ( $action === 'edit' && $post_id ) {
                         <p class="description"><?php printf( __( 'Times are in site timezone: %s', 'opi-bluesky' ), esc_html( wp_timezone_string() ) ); ?></p>
                     </td>
                 </tr>
+                <?php if ( ! empty( $all_categories ) ) : ?>
+                <tr>
+                    <th scope="row"><?php _e( 'Category', 'opi-bluesky' ); ?></th>
+                    <td>
+                        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                            <?php foreach ( $all_categories as $cat ) : ?>
+                                <label style="display:flex;align-items:center;gap:4px;">
+                                    <input type="checkbox"
+                                           name="bsky_category_ids[]"
+                                           value="<?php echo $cat->term_id; ?>"
+                                           <?php checked( in_array( $cat->term_id, $assigned_term_ids, true ) ); ?>>
+                                    <?php echo esc_html( $cat->name ); ?>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                        <p class="description"><?php _e( 'Assign to a category for use with the category scheduler.', 'opi-bluesky' ); ?></p>
+                    </td>
+                </tr>
+                <?php endif; ?>
             </table>
 
             <?php submit_button(

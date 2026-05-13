@@ -1,0 +1,174 @@
+/*
+ * OPI Tools — Shared Admin CSS
+ * assets/css/opi-admin.css
+ *
+ * Consumed by all OPI sub-plugin admin pages.
+ * Uses CSS custom properties defined by OPI_Settings::output_css_vars().
+ */
+
+/* ── Component: Card ─────────────────────────────────────────────────────── */
+
+.opi-card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba( 0, 0, 0, 0.06 );
+    padding: 20px 24px;
+    margin-bottom: 20px;
+}
+
+/* ── Component: Section Header ───────────────────────────────────────────── */
+
+.opi-section-header {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var( --opi-accent, #2271b1 );
+    border-left: 3px solid var( --opi-accent, #2271b1 );
+    padding-left: 10px;
+    margin: 0 0 16px 0;
+    line-height: 1.4;
+}
+
+/* ── Component: Status Badge ─────────────────────────────────────────────── */
+
+.opi-status-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.opi-status-badge--ok {
+    background: #edfaef;
+    color: #1a7431;
+}
+
+.opi-status-badge--warn {
+    background: #fcf9e8;
+    color: #8a6d00;
+}
+
+.opi-status-badge--error {
+    background: #fce8e8;
+    color: #8a0000;
+}
+
+/* ── Component: Two-Column Layout ────────────────────────────────────────── */
+
+.opi-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media ( max-width: 782px ) {
+    .opi-two-col {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Component: Form Row ─────────────────────────────────────────────────── */
+
+.opi-form-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.opi-form-row label {
+    min-width: 180px;
+    padding-top: 4px;
+    font-weight: 500;
+}
+
+.opi-form-row .opi-form-control {
+    flex: 1;
+}
+
+.opi-form-row .description {
+    margin-top: 4px;
+    color: #646970;
+    font-size: 12px;
+}
+
+/* ── Color Input Pair ────────────────────────────────────────────────────── */
+
+.opi-color-pair {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.opi-color-pair input[type="color"] {
+    width: 40px;
+    height: 32px;
+    padding: 2px;
+    border: 1px solid #dcdcde;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.opi-color-pair input[type="text"] {
+    width: 100px;
+    font-family: monospace;
+}
+
+/* ── Dashboard: Plugin Status Grid ──────────────────────────────────────── */
+
+.opi-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat( auto-fill, minmax( 220px, 1fr ) );
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.opi-dashboard-plugin-card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px rgba( 0, 0, 0, 0.06 );
+}
+
+.opi-dashboard-plugin-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+}
+
+.opi-dashboard-plugin-card .opi-plugin-version {
+    font-size: 11px;
+    color: #646970;
+    margin-bottom: 10px;
+}
+
+/* ── Dashboard: Health Alerts ────────────────────────────────────────────── */
+
+.opi-health-alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 13px;
+}
+
+.opi-health-alert--warn {
+    background: #fcf9e8;
+    border-left: 4px solid #dba617;
+}
+
+.opi-health-alert--error {
+    background: #fce8e8;
+    border-left: 4px solid #d63638;
+}
+
+.opi-health-alert .opi-health-action {
+    margin-left: auto;
+    white-space: nowrap;
+}

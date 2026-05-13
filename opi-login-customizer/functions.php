@@ -23,5 +23,5 @@ add_action( 'plugins_loaded', function() {
 register_uninstall_hook( __FILE__, 'opilogin_uninstall' );
 
 function opilogin_uninstall(): void {
-    delete_option( OPI_Login::OPTION_KEY );
+    delete_option( OPI_Login_Settings::OPTION_KEY );
 }

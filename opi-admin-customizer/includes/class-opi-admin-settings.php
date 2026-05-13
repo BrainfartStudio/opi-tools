@@ -3,36 +3,42 @@
 
 defined( 'ABSPATH' ) || exit;
 
-class OPI_Admin_Settings {
+class OPI_Admin_Settings extends OPI_Settings_Base {
+
+    const OPTION_KEY = 'opiadmin_settings';
+
+    protected static function get_option_key(): string {
+        return self::OPTION_KEY;
+    }
 
     public static function get_defaults(): array {
         return [
-            'sidebar_bg'        => '#23282d',
-            'sidebar_text'      => '#a7aaad',
-            'sidebar_highlight' => '#2271b1',
-            'topbar_bg'         => '#23282d',
-            'topbar_text'       => '#a7aaad',
-            'font_family'       => 'inherit',
-            'custom_css'        => '',
+            'sidebar_bg'         => '#23282d',
+            'sidebar_text'       => '#a7aaad',
+            'sidebar_icon_color' => '#a7aaad',
+            'sidebar_highlight'  => '#2271b1',
+            'sidebar_submenu_bg' => '#32373c',
+            'sidebar_open_bg'    => '#191e23',
+            'sidebar_icon_filter'=> 'light',
+            'sidebar_width'      => 160,
+            'sidebar_icon_size'  => 20,
+            'sidebar_font_size'  => 13,
+            'topbar_bg'          => '#23282d',
+            'topbar_text'        => '#a7aaad',
+            'topbar_height'      => 32,
+            'topbar_font_size'   => 13,
+            'font_family'        => 'inherit',
+            'custom_css'         => '',
         ];
     }
 
-    public static function get(): array {
-        $saved = get_option( OPI_Admin::OPTION_KEY, [] );
-        return wp_parse_args( $saved, self::get_defaults() );
-    }
-
-    public static function save( array $input ): void {
-        $clean    = [];
-        $defaults = self::get_defaults();
-
-        foreach ( [ 'sidebar_bg', 'sidebar_text', 'sidebar_highlight', 'topbar_bg', 'topbar_text' ] as $key ) {
-            $clean[ $key ] = sanitize_hex_color( $input[ $key ] ?? '' ) ?? $defaults[ $key ];
-        }
-
-        $clean['font_family'] = sanitize_text_field( $input['font_family'] ?? 'inherit' );
-        $clean['custom_css']  = wp_strip_all_tags( $input['custom_css'] ?? '' );
-
-        update_option( OPI_Admin::OPTION_KEY, $clean );
+    public static function sanitize( array $input ): array {
+        $clean                        = static::sanitize_base( $input );
+        $clean['custom_css']          = wp_strip_all_tags( $input['custom_css'] ?? '' );
+        $allowed_filters              = [ 'light', 'dark', 'none' ];
+        $clean['sidebar_icon_filter'] = in_array( $input['sidebar_icon_filter'] ?? '', $allowed_filters, true )
+            ? $input['sidebar_icon_filter']
+            : 'light';
+        return $clean;
     }
 }

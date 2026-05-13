@@ -23,5 +23,5 @@ add_action( 'plugins_loaded', function() {
 register_uninstall_hook( __FILE__, 'opiadmin_uninstall' );
 
 function opiadmin_uninstall(): void {
-    delete_option( OPI_Admin::OPTION_KEY );
+    delete_option( 'opiadmin_settings' );
 }

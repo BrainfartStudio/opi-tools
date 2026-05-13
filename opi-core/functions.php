@@ -20,4 +20,8 @@ require_once OPITOOLS_PATH . 'vendor/autoload.php';
 add_action( 'plugins_loaded', function() {
     require_once OPITOOLS_PATH . 'includes/class-opi-tools.php';
     OPI_Tools::init();
-} );
+}, 1 );
+
+add_action( 'plugins_loaded', function() {
+    do_action( 'opi_tools_register_plugins' );
+}, 20 );

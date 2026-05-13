@@ -16,6 +16,7 @@ define( 'OPIDISCORD_PATH', plugin_dir_path( __FILE__ ) );
 define( 'OPIDISCORD_URL', plugin_dir_url( __FILE__ ) );
 
 add_action( 'plugins_loaded', function() {
+    require_once OPIDISCORD_PATH . 'includes/class-opi-discord-settings.php';
     require_once OPIDISCORD_PATH . 'includes/class-opi-discord.php';
     OPI_Discord::init();
 }, 5 );

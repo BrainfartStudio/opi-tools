@@ -1,9 +1,9 @@
 <?php
-// includes/class-opi-bluesky-crypto.php
+// includes/class-opi-crypto.php
 
 defined( 'ABSPATH' ) || exit;
 
-class OPI_Bluesky_Crypto {
+class OPI_Crypto {
 
     /**
      * Derive a site-specific encryption key from AUTH_KEY + SECURE_AUTH_KEY.
