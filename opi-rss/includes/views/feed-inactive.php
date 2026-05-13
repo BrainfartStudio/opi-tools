@@ -8,39 +8,24 @@ OPI_RSS::maybe_render_notice();
 $feeds = OPI_RSS_DB::get_feeds_by_statuses( [ OPI_RSS_DB::STATUS_INACTIVE, OPI_RSS_DB::STATUS_PENDING ] );
 
 $badge_map = [
-    OPI_RSS_DB::STATUS_INACTIVE => [ 'class' => '',       'label' => __( 'Inactive', 'opi-rss' ) ],
-    OPI_RSS_DB::STATUS_PENDING  => [ 'class' => '--warn',  'label' => __( 'Pending',  'opi-rss' ) ],
+    OPI_RSS_DB::STATUS_INACTIVE => [ 'class' => '',      'label' => __( 'Inactive', 'opi-rss' ) ],
+    OPI_RSS_DB::STATUS_PENDING  => [ 'class' => '--warn', 'label' => __( 'Pending',  'opi-rss' ) ],
 ];
 ?>
 <div class="wrap">
     <h1><?php _e( 'RSS Aggregator', 'opi-rss' ); ?></h1>
 
-    <p>
-        <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-rss&view=list' ) ); ?>" class="button">
-            &larr; <?php _e( 'Active Feeds', 'opi-rss' ); ?>
-        </a>
-    </p>
-
-    <nav class="nav-tab-wrapper" style="margin-bottom:20px;">
-        <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-rss&view=inactive' ) ); ?>"
-           class="nav-tab nav-tab-active">
-            <?php _e( 'Inactive', 'opi-rss' ); ?>
-        </a>
-        <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-rss&view=error' ) ); ?>"
-           class="nav-tab">
-            <?php _e( 'Errors', 'opi-rss' ); ?>
-        </a>
-    </nav>
+    <?php OPI_RSS::render_nav( 'inactive' ); ?>
 
     <div class="opi-card" style="padding:0;">
-        <table class="wp-list-table widefat fixed striped" style="border:none;">
+        <table class="wp-list-table widefat striped" style="border:none;table-layout:auto;">
             <thead>
                 <tr>
-                    <th style="width:90px;"><?php _e( 'Status', 'opi-rss' ); ?></th>
+                    <th style="width:80px;"><?php _e( 'Status', 'opi-rss' ); ?></th>
                     <th style="width:180px;"><?php _e( 'Name', 'opi-rss' ); ?></th>
                     <th><?php _e( 'URL', 'opi-rss' ); ?></th>
-                    <th style="width:130px;"><?php _e( 'Last Fetch', 'opi-rss' ); ?></th>
-                    <th style="width:200px;"><?php _e( 'Actions', 'opi-rss' ); ?></th>
+                    <th style="width:120px;"><?php _e( 'Last Fetch', 'opi-rss' ); ?></th>
+                    <th style="width:180px;"><?php _e( 'Actions', 'opi-rss' ); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -80,22 +65,15 @@ $badge_map = [
                                     <?php wp_nonce_field( 'opirss_nonce' ); ?>
                                     <input type="hidden" name="opirss_action" value="activate">
                                     <input type="hidden" name="id" value="<?php echo absint( $feed->id ); ?>">
-                                    <button type="submit" class="button button-small button-primary">
-                                        <?php _e( 'Activate', 'opi-rss' ); ?>
-                                    </button>
+                                    <button type="submit" class="button button-small button-primary"><?php _e( 'Activate', 'opi-rss' ); ?></button>
                                 </form>
-
                                 <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-rss&view=edit&id=' . absint( $feed->id ) ) ); ?>"
-                                   class="button button-small">
-                                    <?php _e( 'Edit', 'opi-rss' ); ?>
-                                </a>
-
+                                   class="button button-small"><?php _e( 'Edit', 'opi-rss' ); ?></a>
                                 <form method="post" style="display:inline;">
                                     <?php wp_nonce_field( 'opirss_nonce' ); ?>
                                     <input type="hidden" name="opirss_action" value="delete">
                                     <input type="hidden" name="id" value="<?php echo absint( $feed->id ); ?>">
-                                    <button type="submit" class="button button-small"
-                                            style="color:#b32d2e;"
+                                    <button type="submit" class="button button-small" style="color:#b32d2e;"
                                             onclick="return confirm('<?php esc_attr_e( 'Delete this feed and all its items?', 'opi-rss' ); ?>');">
                                         <?php _e( 'Delete', 'opi-rss' ); ?>
                                     </button>

@@ -206,6 +206,37 @@ class OPI_RSS {
         }
     }
 
+    // ── Shared nav ───────────────────────────────────────────────────────
+
+    /**
+     * Render the shared top nav bar used by all RSS admin views.
+     */
+    public static function render_nav( string $current_view ): void {
+        $counts         = OPI_RSS_DB::get_widget_counts();
+        $inactive_count = count( OPI_RSS_DB::get_feeds_by_statuses( [ OPI_RSS_DB::STATUS_INACTIVE, OPI_RSS_DB::STATUS_PENDING ] ) );
+        $error_count    = $counts->error_count;
+
+        $items = [
+            'add'      => __( 'Add New Feed', 'opi-rss' ),
+            'list'     => __( 'Active Feeds', 'opi-rss' ),
+            'inactive' => sprintf( 'Inactive Feeds%s',
+                $inactive_count ? ' <span class="count">(' . $inactive_count . ')</span>' : '' ),
+            'error'    => sprintf( 'Error Feeds%s',
+                $error_count ? ' <span class="count">(' . $error_count . ')</span>' : '' ),
+            'settings' => __( 'Settings', 'opi-rss' ),
+        ];
+        ?>
+        <nav class="nav-tab-wrapper" style="margin-bottom:20px;">
+            <?php foreach ( $items as $view => $label ) : ?>
+                <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-rss&view=' . $view ) ); ?>"
+                   class="nav-tab <?php echo $current_view === $view ? 'nav-tab-active' : ''; ?>">
+                    <?php echo wp_kses( $label, [ 'span' => [ 'class' => [] ] ] ); ?>
+                </a>
+            <?php endforeach; ?>
+        </nav>
+        <?php
+    }
+
     // ── Dashboard callbacks ───────────────────────────────────────────────
 
     public static function get_widget_data(): array {

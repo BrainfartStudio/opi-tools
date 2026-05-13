@@ -12,11 +12,7 @@ $is_edit   = (bool) $edit_feed;
 <div class="wrap">
     <h1><?php echo $is_edit ? __( 'Edit Feed', 'opi-rss' ) : __( 'Add New Feed', 'opi-rss' ); ?></h1>
 
-    <p>
-        <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-rss&view=list' ) ); ?>" class="button">
-            &larr; <?php _e( 'Back to Feeds', 'opi-rss' ); ?>
-        </a>
-    </p>
+    <?php OPI_RSS::render_nav( $is_edit ? '' : 'add' ); ?>
 
     <form method="post">
         <?php wp_nonce_field( 'opirss_nonce' ); ?>

@@ -5,17 +5,13 @@ defined( 'ABSPATH' ) || exit;
 
 OPI_RSS::maybe_render_notice();
 
-$settings = OPI_RSS_Settings::get();
+$settings  = OPI_RSS_Settings::get();
 $intervals = OPI_RSS_Settings::get_interval_options();
 ?>
 <div class="wrap">
     <h1><?php _e( 'RSS Aggregator', 'opi-rss' ); ?></h1>
 
-    <p>
-        <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-rss&view=list' ) ); ?>" class="button">
-            &larr; <?php _e( 'Back to Feeds', 'opi-rss' ); ?>
-        </a>
-    </p>
+    <?php OPI_RSS::render_nav( 'settings' ); ?>
 
     <form method="post">
         <?php wp_nonce_field( 'opirss_nonce' ); ?>
