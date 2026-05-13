@@ -16,7 +16,7 @@ class OPI_Bluesky_Settings {
             'identifier'           => '',
             'app_password'         => '',
             'auto_post_on_publish' => true,
-            'category_slots'       => [], // groundwork for category scheduler
+            'category_slots'       => [],
         ];
     }
 
@@ -33,9 +33,8 @@ class OPI_Bluesky_Settings {
 
         $app_password = sanitize_text_field( $input['app_password'] ?? '' );
 
-        // Encrypt before storing. If blank, keep existing encrypted value.
         if ( ! empty( $app_password ) ) {
-            $app_password = OPI_Bluesky_Crypto::encrypt( $app_password );
+            $app_password = OPI_Crypto::encrypt( $app_password );
         } else {
             $existing     = self::get();
             $app_password = $existing['app_password'] ?? '';
@@ -58,7 +57,7 @@ class OPI_Bluesky_Settings {
      */
     public static function get_app_password(): string {
         $encrypted = self::get()['app_password'] ?? '';
-        return OPI_Bluesky_Crypto::decrypt( $encrypted );
+        return OPI_Crypto::decrypt( $encrypted );
     }
 
     public static function is_configured(): bool {
