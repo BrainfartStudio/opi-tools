@@ -25,12 +25,11 @@ if ( isset( $_POST['opibluesky_save_post'] ) && check_admin_referer( 'opibluesky
     $ref_cid = sanitize_text_field( $_POST['bsky_ref_cid'] ?? '' );
     $edit_id = intval( $_POST['bsky_post_id'] ?? 0 );
 
-    // Content is required except for reposts (which can be plain reposts with no text).
     $content_required = ( $type !== 'repost' );
-    $invalid = ! $scheduled_at || ( $content_required && ! $content );
+    $invalid          = ! $scheduled_at || ( $content_required && ! $content );
 
     if ( $invalid ) {
-        $message = '<div class="notice notice-error"><p>' . __( 'Scheduled date is required. Content is required for posts and replies.', 'opi-bluesky' ) . '</p></div>';
+        $message = OPI_Tools::notice( 'error', __( 'Scheduled date is required. Content is required for posts and replies.', 'opi-bluesky' ) );
         $action  = isset( $_POST['bsky_post_id'] ) && intval( $_POST['bsky_post_id'] ) ? 'edit' : 'new';
     } else {
         if ( $edit_id ) {
@@ -39,10 +38,10 @@ if ( isset( $_POST['opibluesky_save_post'] ) && check_admin_referer( 'opibluesky
             update_post_meta( $edit_id, '_bsky_type',         $type );
             update_post_meta( $edit_id, '_bsky_ref_uri',      $ref_uri );
             update_post_meta( $edit_id, '_bsky_ref_cid',      $ref_cid );
-            $message = '<div class="notice notice-success"><p>' . __( 'Post updated.', 'opi-bluesky' ) . '</p></div>';
+            $message = OPI_Tools::notice( 'success', __( 'Post updated.', 'opi-bluesky' ) );
         } else {
             OPI_Bluesky_Post_Type::create( $content, $scheduled_at, $type, $ref_uri, $ref_cid );
-            $message = '<div class="notice notice-success"><p>' . __( 'Post scheduled.', 'opi-bluesky' ) . '</p></div>';
+            $message = OPI_Tools::notice( 'success', __( 'Post scheduled.', 'opi-bluesky' ) );
         }
         $action = 'list';
     }
@@ -52,7 +51,7 @@ if ( isset( $_POST['opibluesky_save_post'] ) && check_admin_referer( 'opibluesky
 
 if ( $action === 'delete' && $post_id && check_admin_referer( 'opibluesky_delete_' . $post_id ) ) {
     OPI_Bluesky_Post_Type::delete( $post_id );
-    $message = '<div class="notice notice-success"><p>' . __( 'Post deleted.', 'opi-bluesky' ) . '</p></div>';
+    $message = OPI_Tools::notice( 'success', __( 'Post deleted.', 'opi-bluesky' ) );
     $action  = 'list';
 }
 
@@ -71,6 +70,9 @@ if ( $action === 'edit' && $post_id ) {
         <a href="<?php echo add_query_arg( [ 'page' => 'opi-bluesky', 'action' => 'new' ], admin_url( 'admin.php' ) ); ?>" class="page-title-action">
             <?php _e( 'Schedule New Post', 'opi-bluesky' ); ?>
         </a>
+        <a href="<?php echo add_query_arg( [ 'page' => 'opi-bluesky', 'view' => 'settings' ], admin_url( 'admin.php' ) ); ?>" class="page-title-action">
+            <?php _e( 'Settings', 'opi-bluesky' ); ?>
+        </a>
     <?php endif; ?>
 
     <hr class="wp-header-end">
@@ -85,9 +87,7 @@ if ( $action === 'edit' && $post_id ) {
         ?>
 
         <?php if ( empty( $list_table->items ) ) : ?>
-            <div class="notice notice-info">
-                <p><?php _e( 'No scheduled posts. Click "Schedule New Post" to create one.', 'opi-bluesky' ); ?></p>
-            </div>
+            <?php echo OPI_Tools::notice( 'info', __( 'No scheduled posts. Click "Schedule New Post" to create one.', 'opi-bluesky' ) ); ?>
         <?php else : ?>
             <form method="get">
                 <input type="hidden" name="page" value="opi-bluesky">

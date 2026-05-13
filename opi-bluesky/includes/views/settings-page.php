@@ -13,7 +13,6 @@ if ( isset( $_POST['opibluesky_save'] ) && check_admin_referer( 'opibluesky_sett
     OPI_Bluesky_Settings::update( $saved );
     $settings = OPI_Bluesky_Settings::get();
 
-    // Save category slots.
     $raw_slots = isset( $_POST['opibluesky_slots'] ) && is_array( $_POST['opibluesky_slots'] )
         ? $_POST['opibluesky_slots']
         : [];
@@ -22,7 +21,6 @@ if ( isset( $_POST['opibluesky_save'] ) && check_admin_referer( 'opibluesky_sett
     );
     $slots = OPI_Bluesky_Category_Scheduler::get_slots();
 
-    // Re-authenticate with new credentials.
     OPI_Bluesky_Auth::clear_session();
     $auth_result = OPI_Bluesky_Auth::authenticate(
         $settings['identifier'],
@@ -30,18 +28,19 @@ if ( isset( $_POST['opibluesky_save'] ) && check_admin_referer( 'opibluesky_sett
     );
 
     if ( is_wp_error( $auth_result ) ) {
-        $message = '<div class="notice notice-error"><p>'
-            . __( 'Settings saved, but connection failed: ', 'opi-bluesky' )
-            . esc_html( $auth_result->get_error_message() )
-            . '</p></div>';
+        $message = OPI_Tools::notice(
+            'error',
+            __( 'Settings saved, but connection failed: ', 'opi-bluesky' ) . $auth_result->get_error_message()
+        );
     } else {
         $session = OPI_Bluesky_Auth::get_session();
-        $message = '<div class="notice notice-success"><p>'
-            . sprintf(
+        $message = OPI_Tools::notice(
+            'success',
+            sprintf(
                 __( 'Settings saved. Connected as <strong>@%s</strong>.', 'opi-bluesky' ),
                 esc_html( $session['handle'] ?? $settings['identifier'] )
             )
-            . '</p></div>';
+        );
     }
 }
 
@@ -64,13 +63,12 @@ $days_labels  = [
     <?php echo $message; ?>
 
     <?php if ( $is_connected && empty( $message ) ) : ?>
-        <div class="notice notice-success">
-            <p><?php printf( __( 'Connected as <strong>@%s</strong>.', 'opi-bluesky' ), esc_html( $session['handle'] ?? '' ) ); ?></p>
-        </div>
+        <?php echo OPI_Tools::notice(
+            'success',
+            sprintf( __( 'Connected as <strong>@%s</strong>.', 'opi-bluesky' ), esc_html( $session['handle'] ?? '' ) )
+        ); ?>
     <?php elseif ( ! $is_connected && empty( $message ) ) : ?>
-        <div class="notice notice-warning">
-            <p><?php _e( 'Not connected. Enter your credentials and save.', 'opi-bluesky' ); ?></p>
-        </div>
+        <?php echo OPI_Tools::notice( 'warning', __( 'Not connected. Enter your credentials and save.', 'opi-bluesky' ) ); ?>
     <?php endif; ?>
 
     <form method="post">
@@ -139,7 +137,6 @@ $days_labels  = [
 </div>
 
 <?php
-// Inline helper — renders a single slot row.
 function self_render_slot_row( int $i, array $slot, array $categories, array $days_labels ): void {
     $all_days = [ 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun' ];
     ?>
@@ -190,9 +187,9 @@ function self_render_slot_row( int $i, array $slot, array $categories, array $da
 
 <script>
 jQuery(document).ready(function($) {
-    var slotIndex = <?php echo count( $slots ); ?>;
-    var allDays   = ['mon','tue','wed','thu','fri','sat','sun'];
-    var dayLabels = <?php echo wp_json_encode( $days_labels ); ?>;
+    var slotIndex  = <?php echo count( $slots ); ?>;
+    var allDays    = ['mon','tue','wed','thu','fri','sat','sun'];
+    var dayLabels  = <?php echo wp_json_encode( $days_labels ); ?>;
     var categories = <?php echo wp_json_encode( array_map( fn($c) => [ 'id' => $c->term_id, 'name' => $c->name ], is_array( $categories ) ? $categories : [] ) ); ?>;
 
     $('#opibluesky-add-slot').on('click', function() {
