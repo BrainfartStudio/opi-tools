@@ -125,13 +125,17 @@ class OPI_RSS {
                 break;
 
             case 'fetch_now':
-                $feed   = OPI_RSS_DB::get_feed( absint( $_POST['id'] ) );
-                $result = $feed ? OPI_RSS_Cron::fetch_feed( $feed ) : false;
-                $type   = $result ? 'success' : 'error';
-                $msg    = $result
+                $feed        = OPI_RSS_DB::get_feed( absint( $_POST['id'] ) );
+                $result      = $feed ? OPI_RSS_Cron::fetch_feed( $feed ) : false;
+                $from_view   = sanitize_key( $_POST['_referer_view'] ?? 'list' );
+                $type        = $result ? 'success' : 'error';
+                $msg         = $result
                     ? __( 'Feed fetched successfully.', 'opi-rss' )
                     : __( 'Failed to fetch feed. Check the URL.', 'opi-rss' );
-                self::redirect_with_notice( 'list', $type, $msg );
+                // On success the feed is now active — always land on the active list.
+                // On failure stay on whichever view triggered the retry.
+                $redirect_view = $result ? 'list' : $from_view;
+                self::redirect_with_notice( $redirect_view, $type, $msg );
                 break;
 
             case 'save_settings':

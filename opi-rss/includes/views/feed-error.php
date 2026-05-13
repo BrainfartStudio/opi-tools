@@ -70,6 +70,7 @@ $feeds = OPI_RSS_DB::get_feeds_by_statuses( [ OPI_RSS_DB::STATUS_ERROR ] );
                                 <form method="post" style="display:inline;">
                                     <?php wp_nonce_field( 'opirss_nonce' ); ?>
                                     <input type="hidden" name="opirss_action" value="fetch_now">
+                                    <input type="hidden" name="_referer_view" value="error">
                                     <input type="hidden" name="id" value="<?php echo absint( $feed->id ); ?>">
                                     <button type="submit" class="button button-small button-primary">
                                         <?php _e( 'Retry Fetch', 'opi-rss' ); ?>

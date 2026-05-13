@@ -125,6 +125,7 @@ $col_link = function( string $col, string $label ) use ( $orderby, $order, $oppo
                                 <form method="post" style="display:inline;">
                                     <?php wp_nonce_field( 'opirss_nonce' ); ?>
                                     <input type="hidden" name="opirss_action" value="fetch_now">
+                                    <input type="hidden" name="_referer_view" value="list">
                                     <input type="hidden" name="id" value="<?php echo absint( $feed->id ); ?>">
                                     <button type="submit" class="button button-small">
                                         <?php _e( 'Fetch', 'opi-rss' ); ?>
