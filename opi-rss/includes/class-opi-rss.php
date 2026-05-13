@@ -13,6 +13,7 @@ class OPI_RSS {
 
         OPI_RSS_Cron::init();
 
+        add_action( 'admin_init',                [ __CLASS__, 'handle_actions' ] );
         add_action( 'opi_tools_register_plugins', [ __CLASS__, 'register_with_core' ] );
     }
 
@@ -40,8 +41,6 @@ class OPI_RSS {
             return;
         }
 
-        self::handle_actions();
-
         $view = sanitize_key( $_GET['view'] ?? 'list' );
 
         switch ( $view ) {
@@ -67,8 +66,13 @@ class OPI_RSS {
     /**
      * Handle POST actions before any view is rendered.
      */
-    private static function handle_actions(): void {
+    public static function handle_actions(): void {
         if ( empty( $_POST['opirss_action'] ) ) {
+            return;
+        }
+
+        // Only act on our own admin page.
+        if ( ( $_GET['page'] ?? '' ) !== 'opi-rss' ) {
             return;
         }
 
