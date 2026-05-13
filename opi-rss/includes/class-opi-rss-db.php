@@ -27,6 +27,7 @@ class OPI_RSS_DB {
             item_limit tinyint(3) DEFAULT 1,
             last_fetch datetime DEFAULT NULL,
             next_fetch datetime DEFAULT NULL,
+            last_error text DEFAULT NULL,
             PRIMARY KEY (id)
         ) $charset_collate;";
 
@@ -213,6 +214,20 @@ class OPI_RSS_DB {
         global $wpdb;
         $table = $wpdb->prefix . 'opirss_feeds';
         return $wpdb->update( $table, [ 'status' => $status ], [ 'id' => $id ] );
+    }
+
+    /**
+     * Set status=error and store the error message.
+     * Pass null to clear the error (on success).
+     */
+    public static function set_error( int $id, ?string $message ): void {
+        global $wpdb;
+        $table = $wpdb->prefix . 'opirss_feeds';
+        if ( $message !== null ) {
+            $wpdb->update( $table, [ 'status' => self::STATUS_ERROR, 'last_error' => $message ], [ 'id' => $id ] );
+        } else {
+            $wpdb->update( $table, [ 'last_error' => null ], [ 'id' => $id ] );
+        }
     }
 
     public static function delete_feed( int $id ): void {

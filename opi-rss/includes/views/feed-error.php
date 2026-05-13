@@ -32,7 +32,8 @@ $feeds = OPI_RSS_DB::get_feeds_by_statuses( [ OPI_RSS_DB::STATUS_ERROR ] );
             <thead>
                 <tr>
                     <th style="width:180px;"><?php _e( 'Name', 'opi-rss' ); ?></th>
-                    <th><?php _e( 'URL', 'opi-rss' ); ?></th>
+                    <th style="width:200px;"><?php _e( 'URL', 'opi-rss' ); ?></th>
+                    <th><?php _e( 'Reason', 'opi-rss' ); ?></th>
                     <th style="width:130px;"><?php _e( 'Last Fetch', 'opi-rss' ); ?></th>
                     <th style="width:220px;"><?php _e( 'Actions', 'opi-rss' ); ?></th>
                 </tr>
@@ -40,7 +41,7 @@ $feeds = OPI_RSS_DB::get_feeds_by_statuses( [ OPI_RSS_DB::STATUS_ERROR ] );
             <tbody>
                 <?php if ( empty( $feeds ) ) : ?>
                     <tr>
-                        <td colspan="4"><?php _e( 'No feeds in an error state.', 'opi-rss' ); ?></td>
+                        <td colspan="5"><?php _e( 'No feeds in an error state.', 'opi-rss' ); ?></td>
                     </tr>
                 <?php else : ?>
                     <?php foreach ( $feeds as $feed ) : ?>
@@ -50,6 +51,15 @@ $feeds = OPI_RSS_DB::get_feeds_by_statuses( [ OPI_RSS_DB::STATUS_ERROR ] );
                                 <a href="<?php echo esc_url( $feed->url ); ?>" target="_blank">
                                     <?php echo esc_html( $feed->url ); ?>
                                 </a>
+                            </td>
+                            <td>
+                                <?php if ( ! empty( $feed->last_error ) ) : ?>
+                                    <span style="color:#8a0000;font-size:12px;">
+                                        <?php echo esc_html( $feed->last_error ); ?>
+                                    </span>
+                                <?php else : ?>
+                                    <em style="color:#646970;"><?php _e( 'Unknown', 'opi-rss' ); ?></em>
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <?php echo $feed->last_fetch

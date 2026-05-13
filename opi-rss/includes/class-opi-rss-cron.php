@@ -96,7 +96,7 @@ class OPI_RSS_Cron {
         $rss = fetch_feed( $feed->url );
 
         if ( is_wp_error( $rss ) ) {
-            OPI_RSS_DB::set_status( $feed->id, OPI_RSS_DB::STATUS_ERROR );
+            OPI_RSS_DB::set_error( $feed->id, $rss->get_error_message() );
             return false;
         }
 
@@ -114,6 +114,7 @@ class OPI_RSS_Cron {
 
         OPI_RSS_DB::replace_items( $feed->id, $items );
         OPI_RSS_DB::update_fetch_times( $feed->id );
+        OPI_RSS_DB::set_error( $feed->id, null );
         OPI_RSS_DB::set_status( $feed->id, OPI_RSS_DB::STATUS_ACTIVE );
 
         return true;
