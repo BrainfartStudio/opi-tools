@@ -47,6 +47,9 @@ class OPI_RSS {
             case 'inactive':
                 require_once OPIRSS_PATH . 'includes/views/feed-inactive.php';
                 break;
+            case 'error':
+                require_once OPIRSS_PATH . 'includes/views/feed-error.php';
+                break;
             case 'add':
             case 'edit':
                 require_once OPIRSS_PATH . 'includes/views/feed-form.php';

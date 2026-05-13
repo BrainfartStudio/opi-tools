@@ -126,6 +126,38 @@ class OPI_RSS_DB {
         " );
     }
 
+    /**
+     * Get feeds matching one or more status values.
+     */
+    public static function get_feeds_by_statuses( array $statuses ): array {
+        global $wpdb;
+        $feeds_table = $wpdb->prefix . 'opirss_feeds';
+        $items_table = $wpdb->prefix . 'opirss_items';
+
+        $placeholders = implode( ',', array_fill( 0, count( $statuses ), '%d' ) );
+
+        return $wpdb->get_results( $wpdb->prepare(
+            "SELECT f.*,
+                   i.title    AS latest_article,
+                   i.link     AS latest_article_link,
+                   i.pub_date AS latest_article_date
+            FROM $feeds_table f
+            LEFT JOIN (
+                SELECT feed_id, title, link, pub_date
+                FROM $items_table i1
+                WHERE pub_date = (
+                    SELECT MAX(pub_date)
+                    FROM $items_table i2
+                    WHERE i2.feed_id = i1.feed_id
+                )
+                GROUP BY feed_id
+            ) i ON f.id = i.feed_id
+            WHERE f.status IN ($placeholders)
+            ORDER BY f.name ASC",
+            ...$statuses
+        ) );
+    }
+
     public static function get_feed( int $id ): ?object {
         global $wpdb;
         $table = $wpdb->prefix . 'opirss_feeds';
@@ -213,14 +245,18 @@ class OPI_RSS_DB {
 
     public static function get_active_sources(): array {
         global $wpdb;
-        $feeds_table = $wpdb->prefix . 'opirss_feeds';
+        $items_table  = $wpdb->prefix . 'opirss_items';
+        $feeds_table  = $wpdb->prefix . 'opirss_feeds';
+        $one_year_ago = date( 'Y-m-d H:i:s', strtotime( '-1 year' ) );
 
         return $wpdb->get_results( $wpdb->prepare(
-            "SELECT id, name, url
-            FROM $feeds_table
-            WHERE status = %d
-            ORDER BY name ASC",
-            self::STATUS_ACTIVE
+            "SELECT DISTINCT f.id, f.name, f.url
+            FROM $feeds_table f
+            JOIN $items_table i ON f.id = i.feed_id
+            WHERE f.status = %d AND i.pub_date > %s
+            ORDER BY f.name ASC",
+            self::STATUS_ACTIVE,
+            $one_year_ago
         ) );
     }
 

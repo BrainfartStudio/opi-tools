@@ -1,16 +1,11 @@
 <?php
-// includes/views/feed-inactive.php
+// includes/views/feed-error.php
 
 defined( 'ABSPATH' ) || exit;
 
 OPI_RSS::maybe_render_notice();
 
-$feeds = OPI_RSS_DB::get_feeds_by_statuses( [ OPI_RSS_DB::STATUS_INACTIVE, OPI_RSS_DB::STATUS_PENDING ] );
-
-$badge_map = [
-    OPI_RSS_DB::STATUS_INACTIVE => [ 'class' => '',       'label' => __( 'Inactive', 'opi-rss' ) ],
-    OPI_RSS_DB::STATUS_PENDING  => [ 'class' => '--warn',  'label' => __( 'Pending',  'opi-rss' ) ],
-];
+$feeds = OPI_RSS_DB::get_feeds_by_statuses( [ OPI_RSS_DB::STATUS_ERROR ] );
 ?>
 <div class="wrap">
     <h1><?php _e( 'RSS Aggregator', 'opi-rss' ); ?></h1>
@@ -23,11 +18,11 @@ $badge_map = [
 
     <nav class="nav-tab-wrapper" style="margin-bottom:20px;">
         <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-rss&view=inactive' ) ); ?>"
-           class="nav-tab nav-tab-active">
+           class="nav-tab">
             <?php _e( 'Inactive', 'opi-rss' ); ?>
         </a>
         <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-rss&view=error' ) ); ?>"
-           class="nav-tab">
+           class="nav-tab nav-tab-active">
             <?php _e( 'Errors', 'opi-rss' ); ?>
         </a>
     </nav>
@@ -36,34 +31,20 @@ $badge_map = [
         <table class="wp-list-table widefat fixed striped" style="border:none;">
             <thead>
                 <tr>
-                    <th style="width:90px;"><?php _e( 'Status', 'opi-rss' ); ?></th>
                     <th style="width:180px;"><?php _e( 'Name', 'opi-rss' ); ?></th>
                     <th><?php _e( 'URL', 'opi-rss' ); ?></th>
                     <th style="width:130px;"><?php _e( 'Last Fetch', 'opi-rss' ); ?></th>
-                    <th style="width:200px;"><?php _e( 'Actions', 'opi-rss' ); ?></th>
+                    <th style="width:220px;"><?php _e( 'Actions', 'opi-rss' ); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ( empty( $feeds ) ) : ?>
                     <tr>
-                        <td colspan="5"><?php _e( 'No inactive or pending feeds.', 'opi-rss' ); ?></td>
+                        <td colspan="4"><?php _e( 'No feeds in an error state.', 'opi-rss' ); ?></td>
                     </tr>
                 <?php else : ?>
-                    <?php foreach ( $feeds as $feed ) :
-                        $badge = $badge_map[ $feed->status ] ?? $badge_map[ OPI_RSS_DB::STATUS_INACTIVE ];
-                    ?>
+                    <?php foreach ( $feeds as $feed ) : ?>
                         <tr>
-                            <td>
-                                <?php if ( $badge['class'] ) : ?>
-                                    <span class="opi-status-badge opi-status-badge<?php echo esc_attr( $badge['class'] ); ?>">
-                                        <?php echo esc_html( $badge['label'] ); ?>
-                                    </span>
-                                <?php else : ?>
-                                    <span class="opi-status-badge" style="background:#f0f0f1;color:#50575e;">
-                                        <?php echo esc_html( $badge['label'] ); ?>
-                                    </span>
-                                <?php endif; ?>
-                            </td>
                             <td><?php echo esc_html( stripslashes( $feed->name ) ); ?></td>
                             <td>
                                 <a href="<?php echo esc_url( $feed->url ); ?>" target="_blank">
@@ -78,10 +59,10 @@ $badge_map = [
                             <td>
                                 <form method="post" style="display:inline;">
                                     <?php wp_nonce_field( 'opirss_nonce' ); ?>
-                                    <input type="hidden" name="opirss_action" value="activate">
+                                    <input type="hidden" name="opirss_action" value="fetch_now">
                                     <input type="hidden" name="id" value="<?php echo absint( $feed->id ); ?>">
                                     <button type="submit" class="button button-small button-primary">
-                                        <?php _e( 'Activate', 'opi-rss' ); ?>
+                                        <?php _e( 'Retry Fetch', 'opi-rss' ); ?>
                                     </button>
                                 </form>
 
@@ -89,6 +70,15 @@ $badge_map = [
                                    class="button button-small">
                                     <?php _e( 'Edit', 'opi-rss' ); ?>
                                 </a>
+
+                                <form method="post" style="display:inline;">
+                                    <?php wp_nonce_field( 'opirss_nonce' ); ?>
+                                    <input type="hidden" name="opirss_action" value="deactivate">
+                                    <input type="hidden" name="id" value="<?php echo absint( $feed->id ); ?>">
+                                    <button type="submit" class="button button-small">
+                                        <?php _e( 'Deactivate', 'opi-rss' ); ?>
+                                    </button>
+                                </form>
 
                                 <form method="post" style="display:inline;">
                                     <?php wp_nonce_field( 'opirss_nonce' ); ?>
