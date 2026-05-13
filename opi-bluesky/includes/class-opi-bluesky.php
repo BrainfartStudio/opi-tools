@@ -26,6 +26,16 @@ class OPI_Bluesky {
         add_action( 'opi_tools_register_plugins', [ __CLASS__, 'register_with_core' ] );
     }
 
+    public static function activate(): void {
+        OPI_Cron_Helper::register_interval( 'opi_bluesky_1min', 60, __( 'Every Minute', 'opi-bluesky' ) );
+        OPI_Cron_Helper::schedule( 'opi_bluesky_process', 'opi_bluesky_1min' );
+    }
+
+    public static function deactivate(): void {
+        OPI_Cron_Helper::unschedule( 'opi_bluesky_process' );
+        OPI_Cron_Helper::unschedule( 'opi_bluesky_category_process' );
+    }
+
     public static function register_with_core(): void {
         OPI_Tools::register_plugin(
             'opi-bluesky',

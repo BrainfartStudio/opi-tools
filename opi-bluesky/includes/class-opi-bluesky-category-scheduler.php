@@ -8,17 +8,8 @@ class OPI_Bluesky_Category_Scheduler {
     const OPTION_KEY = 'opibluesky_category_slots';
 
     public static function init(): void {
-        add_action( 'opi_bluesky_category_process', [ __CLASS__, 'process_slot' ] );
-        add_filter( 'cron_schedules',               [ __CLASS__, 'add_cron_interval' ] );
-        add_action( 'update_option_' . self::OPTION_KEY, [ __CLASS__, 'reschedule_cron' ] );
-    }
-
-    public static function add_cron_interval( array $schedules ): array {
-        $schedules['opi_bluesky_daily'] = [
-            'interval' => DAY_IN_SECONDS,
-            'display'  => __( 'Once Daily', 'opi-bluesky' ),
-        ];
-        return $schedules;
+        add_action( 'opi_bluesky_category_process',          [ __CLASS__, 'process_slot' ] );
+        add_action( 'update_option_' . self::OPTION_KEY,     [ __CLASS__, 'reschedule_cron' ] );
     }
 
     // ── Settings helpers ─────────────────────────────────────────────────────
@@ -54,7 +45,6 @@ class OPI_Bluesky_Category_Scheduler {
             ];
         }
 
-        // Sort by time ascending.
         usort( $sanitized, fn( $a, $b ) => strcmp( $a['time'], $b['time'] ) );
 
         return $sanitized;
@@ -63,7 +53,7 @@ class OPI_Bluesky_Category_Scheduler {
     // ── Cron ─────────────────────────────────────────────────────────────────
 
     /**
-     * Called every minute by opi_bluesky_process (piggybacks on the existing cron).
+     * Called every minute via opi_bluesky_process.
      * Checks if any slot's time has just passed and fires it.
      */
     public static function process_slot(): void {
@@ -73,7 +63,7 @@ class OPI_Bluesky_Category_Scheduler {
 
         $slots   = self::get_slots();
         $now     = current_time( 'timestamp' );
-        $day_key = strtolower( date( 'D', $now ) ); // mon, tue, etc.
+        $day_key = strtolower( date( 'D', $now ) );
         $hhmm    = date( 'H:i', $now );
 
         foreach ( $slots as $slot ) {
@@ -85,12 +75,11 @@ class OPI_Bluesky_Category_Scheduler {
                 continue;
             }
 
-            // Prevent double-firing within the same minute.
             $lock_key = 'opibluesky_slot_fired_' . md5( $slot['time'] . $slot['category_id'] );
             if ( get_transient( $lock_key ) ) {
                 continue;
             }
-            set_transient( $lock_key, 1, 90 ); // 90s lock
+            set_transient( $lock_key, 1, 90 );
 
             self::fire_slot( (int) $slot['category_id'] );
         }
@@ -175,11 +164,7 @@ class OPI_Bluesky_Category_Scheduler {
         $slots = self::get_slots();
 
         if ( empty( $slots ) ) {
-            $ts = wp_next_scheduled( 'opi_bluesky_category_process' );
-            if ( $ts ) {
-                wp_unschedule_event( $ts, 'opi_bluesky_category_process' );
-            }
-            return;
+            OPI_Cron_Helper::unschedule( 'opi_bluesky_category_process' );
         }
 
         // Category process piggybacks on opi_bluesky_process (1-min cron).
