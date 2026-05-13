@@ -66,11 +66,29 @@ class OPI_RSS_DB {
 
     /**
      * Get feeds with latest article joined, optionally filtered by status.
+     *
+     * @param int|null $status   Filter by status, or null for all.
+     * @param string   $orderby  Column: 'name' | 'last_fetch' | 'latest_article_date'
+     * @param string   $order    'ASC' | 'DESC'
      */
-    public static function get_feeds_with_latest( ?int $status = null ): array {
+    public static function get_feeds_with_latest(
+        ?int $status = null,
+        string $orderby = 'name',
+        string $order = 'ASC'
+    ): array {
         global $wpdb;
         $feeds_table = $wpdb->prefix . 'opirss_feeds';
         $items_table = $wpdb->prefix . 'opirss_items';
+
+        $allowed_orderby = [ 'name', 'last_fetch', 'latest_article_date' ];
+        if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
+            $orderby = 'name';
+        }
+        $order = strtoupper( $order ) === 'DESC' ? 'DESC' : 'ASC';
+
+        $order_clause = $orderby === 'latest_article_date'
+            ? "ORDER BY i.pub_date $order, f.name ASC"
+            : "ORDER BY f.$orderby $order";
 
         $where = $status !== null
             ? $wpdb->prepare( 'WHERE f.status = %d', $status )
@@ -93,7 +111,7 @@ class OPI_RSS_DB {
                 GROUP BY feed_id
             ) i ON f.id = i.feed_id
             $where
-            ORDER BY f.name ASC
+            $order_clause
         " );
     }
 

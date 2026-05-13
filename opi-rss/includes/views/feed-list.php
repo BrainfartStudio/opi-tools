@@ -5,7 +5,37 @@ defined( 'ABSPATH' ) || exit;
 
 OPI_RSS::maybe_render_notice();
 
-$feeds = OPI_RSS_DB::get_feeds_with_latest( OPI_RSS_DB::STATUS_ACTIVE );
+$allowed_orderby = [ 'name', 'last_fetch', 'latest_article_date' ];
+$orderby         = in_array( $_GET['orderby'] ?? '', $allowed_orderby, true )
+                   ? $_GET['orderby']
+                   : 'latest_article_date';
+$order           = ( strtoupper( $_GET['order'] ?? '' ) === 'ASC' ) ? 'ASC' : 'DESC';
+$opposite        = $order === 'ASC' ? 'DESC' : 'ASC';
+
+$feeds = OPI_RSS_DB::get_feeds_with_latest( OPI_RSS_DB::STATUS_ACTIVE, $orderby, $order );
+
+/**
+ * Build a sortable column header link.
+ */
+$col_link = function( string $col, string $label ) use ( $orderby, $order, $opposite ): string {
+    $is_active  = $orderby === $col;
+    $next_order = $is_active ? $opposite : 'DESC';
+    $arrow      = $is_active ? ( $order === 'ASC' ? ' ▲' : ' ▼' ) : '';
+    $url        = admin_url( 'admin.php?' . http_build_query( [
+        'page'    => 'opi-rss',
+        'view'    => 'list',
+        'orderby' => $col,
+        'order'   => $next_order,
+    ] ) );
+    $style = $is_active ? 'font-weight:700;' : '';
+    return sprintf(
+        '<a href="%s" style="%s">%s%s</a>',
+        esc_url( $url ),
+        esc_attr( $style ),
+        esc_html( $label ),
+        $arrow
+    );
+};
 ?>
 <div class="wrap">
     <h1><?php _e( 'RSS Aggregator', 'opi-rss' ); ?></h1>
@@ -27,17 +57,18 @@ $feeds = OPI_RSS_DB::get_feeds_with_latest( OPI_RSS_DB::STATUS_ACTIVE );
             <thead>
                 <tr>
                     <th style="width:90px;"><?php _e( 'Status', 'opi-rss' ); ?></th>
-                    <th style="width:160px;"><?php _e( 'Name', 'opi-rss' ); ?></th>
+                    <th style="width:150px;"><?php echo $col_link( 'name', __( 'Name', 'opi-rss' ) ); ?></th>
                     <th><?php _e( 'Latest Article', 'opi-rss' ); ?></th>
-                    <th style="width:110px;"><?php _e( 'Last Fetch', 'opi-rss' ); ?></th>
-                    <th style="width:100px;"><?php _e( 'Next Fetch', 'opi-rss' ); ?></th>
+                    <th style="width:110px;"><?php echo $col_link( 'latest_article_date', __( 'Last Post', 'opi-rss' ) ); ?></th>
+                    <th style="width:110px;"><?php echo $col_link( 'last_fetch', __( 'Last Fetch', 'opi-rss' ) ); ?></th>
+                    <th style="width:90px;"><?php _e( 'Next Fetch', 'opi-rss' ); ?></th>
                     <th style="width:200px;"><?php _e( 'Actions', 'opi-rss' ); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ( empty( $feeds ) ) : ?>
                     <tr>
-                        <td colspan="6">
+                        <td colspan="7">
                             <?php _e( 'No active feeds. ', 'opi-rss' ); ?>
                             <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-rss&view=add' ) ); ?>">
                                 <?php _e( 'Add one.', 'opi-rss' ); ?>
@@ -75,13 +106,14 @@ $feeds = OPI_RSS_DB::get_feeds_with_latest( OPI_RSS_DB::STATUS_ACTIVE );
                                         echo esc_html( strlen( $title ) > 60 ? substr( $title, 0, 60 ) . '…' : $title );
                                         ?>
                                     </a>
-                                    <br>
-                                    <small style="color:#646970;">
-                                        <?php echo esc_html( OPI_RSS::time_diff( $feed->latest_article_date ) ); ?>
-                                    </small>
                                 <?php else : ?>
                                     <em><?php _e( 'No articles yet', 'opi-rss' ); ?></em>
                                 <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php echo $feed->latest_article_date
+                                    ? esc_html( OPI_RSS::time_diff( $feed->latest_article_date ) )
+                                    : '—'; ?>
                             </td>
                             <td>
                                 <?php echo $feed->last_fetch
