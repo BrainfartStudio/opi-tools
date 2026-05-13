@@ -213,18 +213,14 @@ class OPI_RSS_DB {
 
     public static function get_active_sources(): array {
         global $wpdb;
-        $items_table  = $wpdb->prefix . 'opirss_items';
-        $feeds_table  = $wpdb->prefix . 'opirss_feeds';
-        $one_year_ago = date( 'Y-m-d H:i:s', strtotime( '-1 year' ) );
+        $feeds_table = $wpdb->prefix . 'opirss_feeds';
 
         return $wpdb->get_results( $wpdb->prepare(
-            "SELECT DISTINCT f.id, f.name, f.url
-            FROM $feeds_table f
-            JOIN $items_table i ON f.id = i.feed_id
-            WHERE f.status = %d AND i.pub_date > %s
-            ORDER BY f.name ASC",
-            self::STATUS_ACTIVE,
-            $one_year_ago
+            "SELECT id, name, url
+            FROM $feeds_table
+            WHERE status = %d
+            ORDER BY name ASC",
+            self::STATUS_ACTIVE
         ) );
     }
 
