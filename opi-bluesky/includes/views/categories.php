@@ -8,7 +8,7 @@ if ( is_wp_error( $categories ) ) {
     $categories = [];
 }
 
-$slots      = OPI_Bluesky_Category_Scheduler::get_slots();
+$slots       = OPI_Bluesky_Category_Scheduler::get_slots();
 $days_labels = [
     'mon' => __( 'Mon', 'opi-bluesky' ),
     'tue' => __( 'Tue', 'opi-bluesky' ),
@@ -30,6 +30,14 @@ if ( isset( $_POST['opibluesky_save_slots'] ) && check_admin_referer( 'opibluesk
     $slots   = OPI_Bluesky_Category_Scheduler::get_slots();
     $message = OPI_Tools::notice( 'success', __( 'Schedule saved.', 'opi-bluesky' ) );
 }
+
+// Pre-compute per-category queue counts and slot state for warnings.
+$cat_meta = []; // term_id => [ 'pending' => int, 'has_slot' => bool ]
+foreach ( $categories as $cat ) {
+    $pending   = count( OPI_Bluesky_Post_Type::get_queued( $cat->term_id ) );
+    $has_slot  = ! empty( OPI_Bluesky_Category_Scheduler::get_slots_for_category( $cat->term_id ) );
+    $cat_meta[ $cat->term_id ] = [ 'pending' => $pending, 'has_slot' => $has_slot ];
+}
 ?>
 <div class="wrap">
     <h1><?php _e( 'Bluesky', 'opi-bluesky' ); ?></h1>
@@ -38,7 +46,7 @@ if ( isset( $_POST['opibluesky_save_slots'] ) && check_admin_referer( 'opibluesk
 
     <nav class="nav-tab-wrapper" style="margin-bottom:20px;">
         <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-bluesky' ) ); ?>"
-           class="nav-tab"><?php _e( 'Scheduled Posts', 'opi-bluesky' ); ?></a>
+           class="nav-tab"><?php _e( 'Posts', 'opi-bluesky' ); ?></a>
         <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-bluesky&view=categories' ) ); ?>"
            class="nav-tab nav-tab-active"><?php _e( 'Categories', 'opi-bluesky' ); ?></a>
         <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-bluesky&view=settings' ) ); ?>"
@@ -59,20 +67,24 @@ if ( isset( $_POST['opibluesky_save_slots'] ) && check_admin_referer( 'opibluesk
                 <thead>
                     <tr>
                         <th><?php _e( 'Name', 'opi-bluesky' ); ?></th>
-                        <th><?php _e( 'Posts', 'opi-bluesky' ); ?></th>
-                        <th><?php _e( 'Actions', 'opi-bluesky' ); ?></th>
+                        <th style="width:120px;"><?php _e( 'Pending Posts', 'opi-bluesky' ); ?></th>
+                        <th style="width:140px;"><?php _e( 'Slot', 'opi-bluesky' ); ?></th>
+                        <th style="width:180px;"><?php _e( 'Actions', 'opi-bluesky' ); ?></th>
                     </tr>
                 </thead>
                 <tbody id="opibluesky-category-list">
                     <?php foreach ( $categories as $cat ) :
-                        $count = get_posts( [
-                            'post_type'      => 'bsky_post',
-                            'post_status'    => 'publish',
-                            'numberposts'    => -1,
-                            'fields'         => 'ids',
-                            'tax_query'      => [ [ 'taxonomy' => 'bsky_post_category', 'field' => 'term_id', 'terms' => $cat->term_id ] ],
-                            'meta_query'     => [ [ 'key' => '_bsky_sent', 'value' => '0', 'compare' => '=' ] ],
-                        ] );
+                        $meta     = $cat_meta[ $cat->term_id ];
+                        $pending  = $meta['pending'];
+                        $has_slot = $meta['has_slot'];
+
+                        // Determine warning state.
+                        $warn = '';
+                        if ( $pending > 0 && ! $has_slot ) {
+                            $warn = __( 'No slot configured', 'opi-bluesky' );
+                        } elseif ( $has_slot && $pending === 0 ) {
+                            $warn = __( 'Queue empty', 'opi-bluesky' );
+                        }
                     ?>
                         <tr data-term-id="<?php echo esc_attr( $cat->term_id ); ?>">
                             <td>
@@ -81,7 +93,14 @@ if ( isset( $_POST['opibluesky_save_slots'] ) && check_admin_referer( 'opibluesk
                                        value="<?php echo esc_attr( $cat->name ); ?>"
                                        style="display:none;">
                             </td>
-                            <td><?php echo count( $count ); ?> <?php _e( 'pending', 'opi-bluesky' ); ?></td>
+                            <td><?php echo $pending; ?></td>
+                            <td>
+                                <?php if ( $warn ) : ?>
+                                    <span class="opi-status-badge opi-status-badge--warn"><?php echo esc_html( $warn ); ?></span>
+                                <?php else : ?>
+                                    <span class="opi-status-badge opi-status-badge--ok"><?php _e( 'OK', 'opi-bluesky' ); ?></span>
+                                <?php endif; ?>
+                            </td>
                             <td>
                                 <button type="button" class="button button-small opibluesky-rename-btn"><?php _e( 'Rename', 'opi-bluesky' ); ?></button>
                                 <button type="button" class="button button-small opibluesky-rename-save" style="display:none;"><?php _e( 'Save', 'opi-bluesky' ); ?></button>
@@ -166,7 +185,7 @@ function opibluesky_render_slot_row( int $i, array $slot, array $categories, arr
                         <input type="checkbox"
                                name="opibluesky_slots[<?php echo $i; ?>][days][]"
                                value="<?php echo esc_attr( $day ); ?>"
-                               <?php checked( in_array( $day, $slot['days'] ?? [], true ) ); ?>>
+                               <?php checked( in_array( $day, $slot['days'] ?? $all_days, true ) ); ?>>
                         <?php echo esc_html( $days_labels[ $day ] ); ?>
                     </label>
                 <?php endforeach; ?>
@@ -182,29 +201,29 @@ function opibluesky_render_slot_row( int $i, array $slot, array $categories, arr
 ?>
 
 <script>
-jQuery(document).ready(function($) {
+jQuery( document ).ready( function( $ ) {
 
-    // ── Add category ─────────────────────────────────────────────────────────
+    // ── Category add ─────────────────────────────────────────────────────────
 
-    $('#opibluesky-add-cat').on('click', function() {
-        var name    = $('#opibluesky-new-cat-name').val().trim();
-        var $result = $('#opibluesky-add-cat-result');
+    $( '#opibluesky-add-cat' ).on( 'click', function() {
+        var name    = $( '#opibluesky-new-cat-name' ).val().trim();
+        var $result = $( '#opibluesky-add-cat-result' );
         if ( ! name ) return;
 
-        $.post(opiBlueskyAdmin.ajaxUrl, {
+        $.post( opiBlueskyAdmin.ajaxUrl, {
             action: 'opibluesky_add_category',
             nonce:  opiBlueskyAdmin.nonce,
             name:   name,
-        }, function(response) {
+        }, function( response ) {
             if ( response.success ) {
-                var termId = response.data.term_id;
+                var termId  = response.data.term_id;
                 var catName = response.data.name;
 
-                // Add row to table.
                 var row = '<tr data-term-id="' + termId + '">' +
-                    '<td><span class="opibluesky-cat-name">' + $('<div>').text(catName).html() + '</span>' +
-                    '<input type="text" class="opibluesky-cat-rename-input regular-text" value="' + $('<div>').text(catName).html() + '" style="display:none;"></td>' +
-                    '<td>0 <?php echo esc_js( __( 'pending', 'opi-bluesky' ) ); ?></td>' +
+                    '<td><span class="opibluesky-cat-name">' + $( '<div>' ).text( catName ).html() + '</span>' +
+                    '<input type="text" class="opibluesky-cat-rename-input regular-text" value="' + $( '<div>' ).text( catName ).html() + '" style="display:none;"></td>' +
+                    '<td>0</td>' +
+                    '<td><span class="opi-status-badge opi-status-badge--warn"><?php echo esc_js( __( 'No slot configured', 'opi-bluesky' ) ); ?></span></td>' +
                     '<td>' +
                     '<button type="button" class="button button-small opibluesky-rename-btn"><?php echo esc_js( __( 'Rename', 'opi-bluesky' ) ); ?></button> ' +
                     '<button type="button" class="button button-small opibluesky-rename-save" style="display:none;"><?php echo esc_js( __( 'Save', 'opi-bluesky' ) ); ?></button> ' +
@@ -212,132 +231,133 @@ jQuery(document).ready(function($) {
                     '<button type="button" class="button button-small opibluesky-delete-cat" style="margin-left:4px;"><?php echo esc_js( __( 'Delete', 'opi-bluesky' ) ); ?></button>' +
                     '</td></tr>';
 
-                if ( $('#opibluesky-category-list').length ) {
-                    $('#opibluesky-category-list').append(row);
+                if ( $( '#opibluesky-category-list' ).length ) {
+                    $( '#opibluesky-category-list' ).append( row );
                 } else {
                     location.reload();
                     return;
                 }
 
-                // Add option to all slot selects.
-                $('select[name*="[category_id]"]').append(
-                    $('<option>').val(termId).text(catName)
+                $( 'select[name*="[category_id]"]' ).append(
+                    $( '<option>' ).val( termId ).text( catName )
                 );
 
-                $('#opibluesky-new-cat-name').val('');
-                $result.css('color', '#2271b1').text('<?php echo esc_js( __( 'Added.', 'opi-bluesky' ) ); ?>');
-                setTimeout(function() { $result.text(''); }, 2000);
+                $( '#opibluesky-new-cat-name' ).val( '' );
+                $result.css( 'color', '#2271b1' ).text( '<?php echo esc_js( __( 'Added.', 'opi-bluesky' ) ); ?>' );
+                setTimeout( function() { $result.text( '' ); }, 2000 );
             } else {
-                $result.css('color', '#d63638').text(response.data);
+                $result.css( 'color', '#d63638' ).text( response.data );
             }
-        });
-    });
+        } );
+    } );
 
     // ── Category rename ──────────────────────────────────────────────────────
 
-    $(document).on('click', '.opibluesky-rename-btn', function() {
-        var $row = $(this).closest('tr');
-        $row.find('.opibluesky-cat-name').hide();
-        $row.find('.opibluesky-cat-rename-input').show().focus();
-        $(this).hide();
-        $row.find('.opibluesky-rename-save, .opibluesky-rename-cancel').show();
-    });
+    $( document ).on( 'click', '.opibluesky-rename-btn', function() {
+        var $row = $( this ).closest( 'tr' );
+        $row.find( '.opibluesky-cat-name' ).hide();
+        $row.find( '.opibluesky-cat-rename-input' ).show().focus();
+        $( this ).hide();
+        $row.find( '.opibluesky-rename-save, .opibluesky-rename-cancel' ).show();
+    } );
 
-    $(document).on('click', '.opibluesky-rename-cancel', function() {
-        var $row = $(this).closest('tr');
-        $row.find('.opibluesky-cat-name').show();
-        $row.find('.opibluesky-cat-rename-input').hide();
-        $row.find('.opibluesky-rename-btn').show();
-        $(this).hide();
-        $row.find('.opibluesky-rename-save').hide();
-    });
+    $( document ).on( 'click', '.opibluesky-rename-cancel', function() {
+        var $row = $( this ).closest( 'tr' );
+        $row.find( '.opibluesky-cat-name' ).show();
+        $row.find( '.opibluesky-cat-rename-input' ).hide();
+        $row.find( '.opibluesky-rename-btn' ).show();
+        $( this ).hide();
+        $row.find( '.opibluesky-rename-save' ).hide();
+    } );
 
-    $(document).on('click', '.opibluesky-rename-save', function() {
-        var $row   = $(this).closest('tr');
-        var termId = $row.data('term-id');
-        var name   = $row.find('.opibluesky-cat-rename-input').val().trim();
+    $( document ).on( 'click', '.opibluesky-rename-save', function() {
+        var $row   = $( this ).closest( 'tr' );
+        var termId = $row.data( 'term-id' );
+        var name   = $row.find( '.opibluesky-cat-rename-input' ).val().trim();
         if ( ! name ) return;
 
-        $.post(opiBlueskyAdmin.ajaxUrl, {
-            action:   'opibluesky_rename_category',
-            nonce:    opiBlueskyAdmin.nonce,
-            term_id:  termId,
-            name:     name,
-        }, function(response) {
+        $.post( opiBlueskyAdmin.ajaxUrl, {
+            action:  'opibluesky_rename_category',
+            nonce:   opiBlueskyAdmin.nonce,
+            term_id: termId,
+            name:    name,
+        }, function( response ) {
             if ( response.success ) {
-                $row.find('.opibluesky-cat-name').text(name).show();
-                $row.find('.opibluesky-cat-rename-input').val(name).hide();
-                $row.find('.opibluesky-rename-btn').show();
-                $row.find('.opibluesky-rename-save, .opibluesky-rename-cancel').hide();
-                $('select[name*="[category_id]"] option[value="' + termId + '"]').text(name);
+                $row.find( '.opibluesky-cat-name' ).text( name ).show();
+                $row.find( '.opibluesky-cat-rename-input' ).val( name ).hide();
+                $row.find( '.opibluesky-rename-btn' ).show();
+                $row.find( '.opibluesky-rename-save, .opibluesky-rename-cancel' ).hide();
+                $( 'select[name*="[category_id]"] option[value="' + termId + '"]' ).text( name );
             } else {
-                alert(response.data);
+                alert( response.data );
             }
-        });
-    });
+        } );
+    } );
 
     // ── Category delete ──────────────────────────────────────────────────────
 
-    $(document).on('click', '.opibluesky-delete-cat', function() {
-        if ( ! confirm('<?php echo esc_js( __( 'Delete this category? Posts assigned to it will become uncategorized.', 'opi-bluesky' ) ); ?>') ) {
+    $( document ).on( 'click', '.opibluesky-delete-cat', function() {
+        if ( ! confirm( '<?php echo esc_js( __( 'Delete this category? Posts assigned to it will become uncategorized.', 'opi-bluesky' ) ); ?>' ) ) {
             return;
         }
-        var $row   = $(this).closest('tr');
-        var termId = $row.data('term-id');
+        var $row   = $( this ).closest( 'tr' );
+        var termId = $row.data( 'term-id' );
 
-        $.post(opiBlueskyAdmin.ajaxUrl, {
+        $.post( opiBlueskyAdmin.ajaxUrl, {
             action:  'opibluesky_delete_category',
             nonce:   opiBlueskyAdmin.nonce,
             term_id: termId,
-        }, function(response) {
+        }, function( response ) {
             if ( response.success ) {
-                $row.fadeOut(200, function() { $(this).remove(); });
-                $('select[name*="[category_id]"] option[value="' + termId + '"]').remove();
+                $row.fadeOut( 200, function() { $( this ).remove(); } );
+                $( 'select[name*="[category_id]"] option[value="' + termId + '"]' ).remove();
             } else {
-                alert(response.data);
+                alert( response.data );
             }
-        });
-    });
+        } );
+    } );
 
     // ── Slot add / remove ────────────────────────────────────────────────────
 
-    var slotIndex = <?php echo count( $slots ); ?>;
-    var allDays   = ['mon','tue','wed','thu','fri','sat','sun'];
-    var dayLabels = <?php echo wp_json_encode( $days_labels ); ?>;
-    var categories = <?php echo wp_json_encode(
+    var slotIndex  = <?php echo count( $slots ); ?>;
+    var allDays    = [ 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun' ];
+    var dayLabels  = <?php echo wp_json_encode( $days_labels ); ?>;
+    var catOptions = <?php echo wp_json_encode(
         array_map( fn( $c ) => [ 'id' => $c->term_id, 'name' => $c->name ], $categories )
     ); ?>;
 
-    $('#opibluesky-add-slot').on('click', function() {
-        var catOptions = categories.map(function(c) {
+    $( '#opibluesky-add-slot' ).on( 'click', function() {
+        var optHtml = catOptions.map( function( c ) {
             return '<option value="' + c.id + '">' + c.name + '</option>';
-        }).join('');
-        if ( ! catOptions ) catOptions = '<option value=""><?php echo esc_js( __( '— No categories yet —', 'opi-bluesky' ) ); ?></option>';
+        } ).join( '' );
+        if ( ! optHtml ) {
+            optHtml = '<option value=""><?php echo esc_js( __( '— No categories yet —', 'opi-bluesky' ) ); ?></option>';
+        }
 
-        var dayCheckboxes = allDays.map(function(d) {
+        var dayHtml = allDays.map( function( d ) {
             return '<label style="display:flex;align-items:center;gap:3px;">' +
                 '<input type="checkbox" name="opibluesky_slots[' + slotIndex + '][days][]" value="' + d + '" checked> ' +
-                dayLabels[d] + '</label>';
-        }).join('');
+                dayLabels[ d ] + '</label>';
+        } ).join( '' );
 
         var html = '<div class="opibluesky-slot-row" style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;padding:12px;background:#f9f9f9;border:1px solid #ddd;border-radius:4px;margin-bottom:10px;">' +
             '<label style="display:flex;flex-direction:column;gap:4px;"><span><?php echo esc_js( __( 'Time', 'opi-bluesky' ) ); ?></span>' +
             '<input type="time" name="opibluesky_slots[' + slotIndex + '][time]" value="08:00" style="width:120px;"></label>' +
             '<label style="display:flex;flex-direction:column;gap:4px;"><span><?php echo esc_js( __( 'Category', 'opi-bluesky' ) ); ?></span>' +
-            '<select name="opibluesky_slots[' + slotIndex + '][category_id]">' + catOptions + '</select></label>' +
+            '<select name="opibluesky_slots[' + slotIndex + '][category_id]">' + optHtml + '</select></label>' +
             '<div style="display:flex;flex-direction:column;gap:4px;"><span><?php echo esc_js( __( 'Days', 'opi-bluesky' ) ); ?></span>' +
-            '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + dayCheckboxes + '</div></div>' +
+            '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + dayHtml + '</div></div>' +
             '<div style="display:flex;align-items:flex-end;">' +
             '<button type="button" class="button opibluesky-remove-slot"><?php echo esc_js( __( 'Remove', 'opi-bluesky' ) ); ?></button></div>' +
             '</div>';
 
-        $('#opibluesky-slots').append(html);
+        $( '#opibluesky-slots' ).append( html );
         slotIndex++;
-    });
+    } );
 
-    $(document).on('click', '.opibluesky-remove-slot', function() {
-        $(this).closest('.opibluesky-slot-row').remove();
-    });
+    $( document ).on( 'click', '.opibluesky-remove-slot', function() {
+        $( this ).closest( '.opibluesky-slot-row' ).remove();
+    } );
 
-});
+} );
 </script>
