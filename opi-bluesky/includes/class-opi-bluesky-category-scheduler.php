@@ -64,9 +64,9 @@ class OPI_Bluesky_Category_Scheduler {
         }
 
         $slots   = self::get_slots();
-        $now     = current_time( 'timestamp' );
-        $day_key = strtolower( date( 'D', $now ) );
-        $hhmm    = date( 'H:i', $now );
+        $now     = current_datetime();
+        $day_key = strtolower( $now->format( 'D' ) );
+        $hhmm    = $now->format( 'H:i' );
 
         foreach ( $slots as $slot ) {
             if ( ! in_array( $day_key, $slot['days'], true ) ) {
