@@ -20,5 +20,23 @@ add_action( 'plugins_loaded', function() {
     OPI_Bluesky::init();
 }, 5 );
 
-register_activation_hook( __FILE__,   [ 'OPI_Bluesky', 'activate' ] );
-register_deactivation_hook( __FILE__, [ 'OPI_Bluesky', 'deactivate' ] );
+register_activation_hook( __FILE__, function() {
+    add_filter( 'cron_schedules', function( $schedules ) {
+        $schedules['opi_bluesky_1min'] = [ 'interval' => 60, 'display' => 'Every Minute' ];
+        return $schedules;
+    } );
+    if ( ! wp_next_scheduled( 'opi_bluesky_process' ) ) {
+        wp_schedule_event( time(), 'opi_bluesky_1min', 'opi_bluesky_process' );
+    }
+} );
+
+register_deactivation_hook( __FILE__, function() {
+    $ts = wp_next_scheduled( 'opi_bluesky_process' );
+    if ( $ts ) {
+        wp_unschedule_event( $ts, 'opi_bluesky_process' );
+    }
+    $ts = wp_next_scheduled( 'opi_bluesky_category_process' );
+    if ( $ts ) {
+        wp_unschedule_event( $ts, 'opi_bluesky_category_process' );
+    }
+} );
