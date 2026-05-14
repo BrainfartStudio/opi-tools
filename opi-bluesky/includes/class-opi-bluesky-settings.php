@@ -49,9 +49,6 @@ class OPI_Bluesky_Settings extends OPI_Settings_Base {
         return static::get()['identifier'] ?? '';
     }
 
-    /**
-     * Returns the decrypted app password for use in API calls.
-     */
     public static function get_app_password(): string {
         $encrypted = static::get()['app_password'] ?? '';
         return OPI_Crypto::decrypt( $encrypted );

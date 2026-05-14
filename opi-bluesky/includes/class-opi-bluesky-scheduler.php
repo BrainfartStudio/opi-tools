@@ -6,11 +6,9 @@ defined( 'ABSPATH' ) || exit;
 class OPI_Bluesky_Scheduler {
 
     public static function init(): void {
+        OPI_Cron_Helper::register_interval( 'opi_bluesky_1min', 60, __( 'Every Minute', 'opi-bluesky' ) );
         add_action( 'opi_bluesky_process', [ __CLASS__, 'process_due_posts' ] );
         add_action( 'opi_bluesky_process', [ 'OPI_Bluesky_Category_Scheduler', 'process_slot' ] );
-
-        // Register the interval on every load so WP knows about it when cron fires.
-        OPI_Cron_Helper::register_interval( 'opi_bluesky_1min', 60, __( 'Every Minute', 'opi-bluesky' ) );
     }
 
     public static function process_due_posts(): void {

@@ -20,18 +20,16 @@ if ( isset( $_POST['opibluesky_save'] ) && check_admin_referer( 'opibluesky_sett
     );
 
     if ( is_wp_error( $auth_result ) ) {
-        $message = '<div class="notice notice-error"><p>'
-            . __( 'Settings saved, but connection failed: ', 'opi-bluesky' )
+        $message = OPI_Tools::notice( 'error',
+            __( 'Settings saved, but connection failed: ', 'opi-bluesky' )
             . esc_html( $auth_result->get_error_message() )
-            . '</p></div>';
+        );
     } else {
         $session = OPI_Bluesky_Auth::get_session();
-        $message = '<div class="notice notice-success"><p>'
-            . sprintf(
-                __( 'Settings saved. Connected as <strong>@%s</strong>.', 'opi-bluesky' ),
-                esc_html( $session['handle'] ?? $settings['identifier'] )
-            )
-            . '</p></div>';
+        $message = OPI_Tools::notice( 'success', sprintf(
+            __( 'Settings saved. Connected as <strong>@%s</strong>.', 'opi-bluesky' ),
+            esc_html( $session['handle'] ?? $settings['identifier'] )
+        ) );
     }
 }
 
@@ -55,59 +53,66 @@ $is_connected = OPI_Bluesky_Auth::is_authenticated();
     <?php echo $message; ?>
 
     <?php if ( $is_connected && empty( $message ) ) : ?>
-        <div class="notice notice-success">
-            <p><?php printf( __( 'Connected as <strong>@%s</strong>.', 'opi-bluesky' ), esc_html( $session['handle'] ?? '' ) ); ?></p>
-        </div>
+        <?php echo OPI_Tools::notice( 'success', sprintf(
+            __( 'Connected as <strong>@%s</strong>.', 'opi-bluesky' ),
+            esc_html( $session['handle'] ?? '' )
+        ) ); ?>
     <?php elseif ( ! $is_connected && empty( $message ) ) : ?>
-        <div class="notice notice-warning">
-            <p><?php _e( 'Not connected. Enter your credentials and save.', 'opi-bluesky' ); ?></p>
-        </div>
+        <?php echo OPI_Tools::notice( 'warning', __( 'Not connected. Enter your credentials and save.', 'opi-bluesky' ) ); ?>
     <?php endif; ?>
 
     <form method="post">
         <?php wp_nonce_field( 'opibluesky_settings_action' ); ?>
 
-        <h2><?php _e( 'Account', 'opi-bluesky' ); ?></h2>
-        <table class="form-table" role="presentation">
-            <tr>
-                <th scope="row"><label for="opibluesky_identifier"><?php _e( 'Bluesky Handle or Email', 'opi-bluesky' ); ?></label></th>
-                <td>
-                    <input type="text" id="opibluesky_identifier" name="opibluesky_settings[identifier]"
+        <div class="opi-card">
+            <h2 class="opi-section-header"><?php _e( 'Account', 'opi-bluesky' ); ?></h2>
+
+            <div class="opi-form-row">
+                <label for="opibluesky_identifier"><?php _e( 'Handle or Email', 'opi-bluesky' ); ?></label>
+                <div class="opi-form-control">
+                    <input type="text" id="opibluesky_identifier"
+                           name="opibluesky_settings[identifier]"
                            value="<?php echo esc_attr( $settings['identifier'] ); ?>"
                            class="regular-text" placeholder="you.bsky.social" autocomplete="off">
                     <p class="description"><?php _e( 'Your Bluesky handle or account email.', 'opi-bluesky' ); ?></p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row"><label for="opibluesky_app_password"><?php _e( 'App Password', 'opi-bluesky' ); ?></label></th>
-                <td>
-                    <input type="password" id="opibluesky_app_password" name="opibluesky_settings[app_password]"
+                </div>
+            </div>
+
+            <div class="opi-form-row">
+                <label for="opibluesky_app_password"><?php _e( 'App Password', 'opi-bluesky' ); ?></label>
+                <div class="opi-form-control">
+                    <input type="password" id="opibluesky_app_password"
+                           name="opibluesky_settings[app_password]"
                            value="" class="regular-text" autocomplete="new-password"
-                           placeholder="<?php echo $settings['app_password'] ? __( '(stored — leave blank to keep)', 'opi-bluesky' ) : ''; ?>">
+                           placeholder="<?php echo $settings['app_password'] ? esc_attr__( '(stored — leave blank to keep)', 'opi-bluesky' ) : ''; ?>">
                     <p class="description">
                         <?php _e( 'Generate at ', 'opi-bluesky' ); ?>
                         <a href="https://bsky.app/settings/app-passwords" target="_blank">bsky.app/settings/app-passwords</a>.
                     </p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row"><?php _e( 'Auto-Post on Publish', 'opi-bluesky' ); ?></th>
-                <td>
+                </div>
+            </div>
+
+            <div class="opi-form-row">
+                <label><?php _e( 'Auto-Post on Publish', 'opi-bluesky' ); ?></label>
+                <div class="opi-form-control">
                     <label>
                         <input type="checkbox" name="opibluesky_settings[auto_post_on_publish]" value="1"
                                <?php checked( $settings['auto_post_on_publish'] ); ?>>
                         <?php _e( 'Automatically post to Bluesky when a WordPress post is published.', 'opi-bluesky' ); ?>
                     </label>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row"><?php _e( 'Connection', 'opi-bluesky' ); ?></th>
-                <td>
-                    <button type="button" id="opibluesky-test-connection" class="button"><?php _e( 'Test Connection', 'opi-bluesky' ); ?></button>
+                </div>
+            </div>
+
+            <div class="opi-form-row">
+                <label><?php _e( 'Connection', 'opi-bluesky' ); ?></label>
+                <div class="opi-form-control">
+                    <button type="button" id="opibluesky-test-connection" class="button">
+                        <?php _e( 'Test Connection', 'opi-bluesky' ); ?>
+                    </button>
                     <span id="opibluesky-test-result" style="margin-left:10px;"></span>
-                </td>
-            </tr>
-        </table>
+                </div>
+            </div>
+        </div>
 
         <?php submit_button( __( 'Save Settings', 'opi-bluesky' ), 'primary', 'opibluesky_save' ); ?>
     </form>

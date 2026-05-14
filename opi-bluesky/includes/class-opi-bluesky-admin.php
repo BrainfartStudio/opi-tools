@@ -115,7 +115,7 @@ class OPI_Bluesky_Admin {
             wp_send_json_error( 'Insufficient permissions.' );
         }
 
-        $term_id = intval( $_POST['term_id'] ?? 0 );
+        $term_id = absint( $_POST['term_id'] ?? 0 );
         if ( ! $term_id ) {
             wp_send_json_error( 'Invalid term ID.' );
         }
@@ -136,7 +136,7 @@ class OPI_Bluesky_Admin {
             wp_send_json_error( 'Insufficient permissions.' );
         }
 
-        $term_id = intval( $_POST['term_id'] ?? 0 );
+        $term_id = absint( $_POST['term_id'] ?? 0 );
         $name    = sanitize_text_field( $_POST['name'] ?? '' );
 
         if ( ! $term_id || ! $name ) {
