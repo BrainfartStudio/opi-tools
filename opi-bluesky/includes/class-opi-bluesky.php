@@ -52,45 +52,32 @@ class OPI_Bluesky {
         $today_start = mktime( 0, 0, 0 );
 
         $sent_today = (int) ( new WP_Query( [
-            'post_type'      => OPI_Bluesky_Post_Type::CPT,
-            'post_status'    => 'publish',
-            'fields'         => 'ids',
-            'no_found_rows'  => true,
-            'meta_query'     => [
-                [ 'key' => '_bsky_sent',    'value' => '1',          'compare' => '=' ],
-                [ 'key' => '_bsky_sent_at', 'value' => $today_start, 'compare' => '>=', 'type' => 'NUMERIC' ],
-            ],
-        ] ) )->post_count;
-
-        $scheduled = (int) ( new WP_Query( [
             'post_type'     => OPI_Bluesky_Post_Type::CPT,
             'post_status'   => 'publish',
             'fields'        => 'ids',
             'no_found_rows' => true,
             'meta_query'    => [
-                [ 'key' => '_bsky_sent', 'value' => '0', 'compare' => '=' ],
+                [ 'key' => '_bsky_sent',    'value' => '1',          'compare' => '=' ],
+                [ 'key' => '_bsky_sent_at', 'value' => $today_start, 'compare' => '>=', 'type' => 'NUMERIC' ],
             ],
         ] ) )->post_count;
+
+        $scheduled_count = count( OPI_Bluesky_Post_Type::get_scheduled() );
+        $queued_count    = count( OPI_Bluesky_Post_Type::get_queued() );
 
         $categories = get_terms( [ 'taxonomy' => 'bsky_post_category', 'hide_empty' => false ] );
         $cat_lines  = [];
         if ( ! is_wp_error( $categories ) && ! empty( $categories ) ) {
             foreach ( $categories as $cat ) {
-                $count = (int) ( new WP_Query( [
-                    'post_type'     => OPI_Bluesky_Post_Type::CPT,
-                    'post_status'   => 'publish',
-                    'fields'        => 'ids',
-                    'no_found_rows' => true,
-                    'tax_query'     => [ [ 'taxonomy' => 'bsky_post_category', 'field' => 'term_id', 'terms' => $cat->term_id ] ],
-                    'meta_query'    => [ [ 'key' => '_bsky_sent', 'value' => '0', 'compare' => '=' ] ],
-                ] ) )->post_count;
+                $count       = count( OPI_Bluesky_Post_Type::get_queued( $cat->term_id ) );
                 $cat_lines[] = $cat->name . ': ' . $count;
             }
         }
 
         $value = sprintf(
-            __( '%d scheduled, %d sent today', 'opi-bluesky' ),
-            $scheduled,
+            __( '%d scheduled, %d queued, %d sent today', 'opi-bluesky' ),
+            $scheduled_count,
+            $queued_count,
             $sent_today
         );
 
@@ -106,6 +93,7 @@ class OPI_Bluesky {
     }
 
     public static function health_data(): array {
+        // Error: not connected.
         if ( ! OPI_Bluesky_Auth::is_authenticated() ) {
             return [
                 'severity'   => 'error',
@@ -115,25 +103,46 @@ class OPI_Bluesky {
         }
 
         $categories = get_terms( [ 'taxonomy' => 'bsky_post_category', 'hide_empty' => false ] );
-        if ( ! is_wp_error( $categories ) ) {
-            foreach ( $categories as $cat ) {
-                $count = (int) ( new WP_Query( [
-                    'post_type'     => OPI_Bluesky_Post_Type::CPT,
-                    'post_status'   => 'publish',
-                    'fields'        => 'ids',
-                    'no_found_rows' => true,
-                    'tax_query'     => [ [ 'taxonomy' => 'bsky_post_category', 'field' => 'term_id', 'terms' => $cat->term_id ] ],
-                    'meta_query'    => [ [ 'key' => '_bsky_sent', 'value' => '0', 'compare' => '=' ] ],
-                ] ) )->post_count;
 
-                if ( $count < 3 ) {
+        if ( ! is_wp_error( $categories ) && ! empty( $categories ) ) {
+            foreach ( $categories as $cat ) {
+                $pending   = count( OPI_Bluesky_Post_Type::get_queued( $cat->term_id ) );
+                $has_slot  = ! empty( OPI_Bluesky_Category_Scheduler::get_slots_for_category( $cat->term_id ) );
+
+                // Warn: category has posts queued but no slot to send them.
+                if ( $pending > 0 && ! $has_slot ) {
                     return [
                         'severity'   => 'warn',
                         'message'    => sprintf(
-                            __( 'Category "%s" has fewer than 3 posts remaining.', 'opi-bluesky' ),
-                            $cat->name
+                            __( 'Category "%s" has %d queued post(s) but no time slot configured.', 'opi-bluesky' ),
+                            $cat->name,
+                            $pending
                         ),
                         'action_url' => admin_url( 'admin.php?page=opi-bluesky&view=categories' ),
+                    ];
+                }
+
+                // Warn: slot configured but queue is empty.
+                if ( $has_slot && $pending === 0 ) {
+                    return [
+                        'severity'   => 'warn',
+                        'message'    => sprintf(
+                            __( 'Category "%s" has a time slot configured but no posts in the queue.', 'opi-bluesky' ),
+                            $cat->name
+                        ),
+                        'action_url' => admin_url( 'admin.php?page=opi-bluesky' ),
+                    ];
+                }
+
+                // Warn: queue running low (fewer than 3 remaining).
+                if ( $has_slot && $pending < 3 ) {
+                    return [
+                        'severity'   => 'warn',
+                        'message'    => sprintf(
+                            __( 'Category "%s" has fewer than 3 posts remaining in the queue.', 'opi-bluesky' ),
+                            $cat->name
+                        ),
+                        'action_url' => admin_url( 'admin.php?page=opi-bluesky' ),
                     ];
                 }
             }
