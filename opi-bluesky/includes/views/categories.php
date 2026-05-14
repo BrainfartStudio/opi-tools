@@ -28,7 +28,7 @@ if ( isset( $_POST['opibluesky_save_slots'] ) && check_admin_referer( 'opibluesk
         OPI_Bluesky_Category_Scheduler::sanitize_slots( $raw_slots )
     );
     $slots   = OPI_Bluesky_Category_Scheduler::get_slots();
-    $message = '<div class="notice notice-success"><p>' . __( 'Schedule saved.', 'opi-bluesky' ) . '</p></div>';
+    $message = OPI_Tools::notice( 'success', __( 'Schedule saved.', 'opi-bluesky' ) );
 }
 ?>
 <div class="wrap">
@@ -155,22 +155,19 @@ function opibluesky_render_slot_row( int $i, array $slot, array $categories, arr
                         <?php echo esc_html( $cat->name ); ?>
                     </option>
                 <?php endforeach; ?>
-                <?php if ( empty( $categories ) ) : ?>
-                    <option value=""><?php _e( '— No categories yet —', 'opi-bluesky' ); ?></option>
-                <?php endif; ?>
             </select>
         </label>
 
         <div style="display:flex;flex-direction:column;gap:4px;">
             <span><?php _e( 'Days', 'opi-bluesky' ); ?></span>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <?php foreach ( $days_labels as $key => $label ) : ?>
+                <?php foreach ( $all_days as $day ) : ?>
                     <label style="display:flex;align-items:center;gap:3px;">
                         <input type="checkbox"
                                name="opibluesky_slots[<?php echo $i; ?>][days][]"
-                               value="<?php echo esc_attr( $key ); ?>"
-                               <?php checked( in_array( $key, $slot['days'] ?? $all_days, true ) ); ?>>
-                        <?php echo esc_html( $label ); ?>
+                               value="<?php echo esc_attr( $day ); ?>"
+                               <?php checked( in_array( $day, $slot['days'] ?? [], true ) ); ?>>
+                        <?php echo esc_html( $days_labels[ $day ] ); ?>
                     </label>
                 <?php endforeach; ?>
             </div>
@@ -187,7 +184,7 @@ function opibluesky_render_slot_row( int $i, array $slot, array $categories, arr
 <script>
 jQuery(document).ready(function($) {
 
-    // ── Category add ─────────────────────────────────────────────────────────
+    // ── Add category ─────────────────────────────────────────────────────────
 
     $('#opibluesky-add-cat').on('click', function() {
         var name    = $('#opibluesky-new-cat-name').val().trim();
@@ -218,7 +215,6 @@ jQuery(document).ready(function($) {
                 if ( $('#opibluesky-category-list').length ) {
                     $('#opibluesky-category-list').append(row);
                 } else {
-                    // Table didn't exist (was showing "no categories"). Reload to keep it simple.
                     location.reload();
                     return;
                 }
@@ -273,7 +269,6 @@ jQuery(document).ready(function($) {
                 $row.find('.opibluesky-cat-rename-input').val(name).hide();
                 $row.find('.opibluesky-rename-btn').show();
                 $row.find('.opibluesky-rename-save, .opibluesky-rename-cancel').hide();
-                // Update slot selects.
                 $('select[name*="[category_id]"] option[value="' + termId + '"]').text(name);
             } else {
                 alert(response.data);
