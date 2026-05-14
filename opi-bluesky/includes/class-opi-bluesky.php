@@ -26,6 +26,16 @@ class OPI_Bluesky {
         add_action( 'opi_tools_register_plugins', [ __CLASS__, 'register_with_core' ] );
     }
 
+    public static function activate(): void {
+        OPI_Cron_Helper::register_interval( 'opi_bluesky_1min', 60, __( 'Every Minute', 'opi-bluesky' ) );
+        OPI_Cron_Helper::schedule( 'opi_bluesky_process', 'opi_bluesky_1min' );
+    }
+
+    public static function deactivate(): void {
+        OPI_Cron_Helper::unschedule( 'opi_bluesky_process' );
+        OPI_Cron_Helper::unschedule( 'opi_bluesky_category_process' );
+    }
+
     public static function register_with_core(): void {
         OPI_Tools::register_plugin(
             'opi-bluesky',
@@ -47,10 +57,10 @@ class OPI_Bluesky {
             'fields'         => 'ids',
             'no_found_rows'  => true,
             'meta_query'     => [
-                [ 'key' => '_bsky_sent',    'value' => '1',         'compare' => '=' ],
+                [ 'key' => '_bsky_sent',    'value' => '1',          'compare' => '=' ],
                 [ 'key' => '_bsky_sent_at', 'value' => $today_start, 'compare' => '>=', 'type' => 'NUMERIC' ],
             ],
-        ] ) )->post_count );
+        ] ) )->post_count;
 
         $scheduled = (int) ( new WP_Query( [
             'post_type'     => OPI_Bluesky_Post_Type::CPT,
@@ -62,7 +72,6 @@ class OPI_Bluesky {
             ],
         ] ) )->post_count;
 
-        // Break down pending by category if any exist.
         $categories = get_terms( [ 'taxonomy' => 'bsky_post_category', 'hide_empty' => false ] );
         $cat_lines  = [];
         if ( ! is_wp_error( $categories ) && ! empty( $categories ) ) {
@@ -105,7 +114,6 @@ class OPI_Bluesky {
             ];
         }
 
-        // Warn if any category has fewer than 3 pending posts.
         $categories = get_terms( [ 'taxonomy' => 'bsky_post_category', 'hide_empty' => false ] );
         if ( ! is_wp_error( $categories ) ) {
             foreach ( $categories as $cat ) {
@@ -125,7 +133,7 @@ class OPI_Bluesky {
                             __( 'Category "%s" has fewer than 3 posts remaining.', 'opi-bluesky' ),
                             $cat->name
                         ),
-                        'action_url' => admin_url( 'admin.php?page=opi-bluesky&action=new' ),
+                        'action_url' => admin_url( 'admin.php?page=opi-bluesky&view=categories' ),
                     ];
                 }
             }
@@ -135,12 +143,18 @@ class OPI_Bluesky {
     }
 
     public static function render_page(): void {
-        $view = sanitize_key( $_GET['view'] ?? 'list' );
+        $view = sanitize_key( $_GET['view'] ?? 'posts' );
 
-        if ( $view === 'settings' ) {
-            require_once OPIBLUESKY_PATH . 'includes/views/settings-page.php';
-        } else {
-            require_once OPIBLUESKY_PATH . 'includes/views/scheduled-posts.php';
+        switch ( $view ) {
+            case 'settings':
+                require_once OPIBLUESKY_PATH . 'includes/views/settings-page.php';
+                break;
+            case 'categories':
+                require_once OPIBLUESKY_PATH . 'includes/views/categories.php';
+                break;
+            default:
+                require_once OPIBLUESKY_PATH . 'includes/views/scheduled-posts.php';
+                break;
         }
     }
 }

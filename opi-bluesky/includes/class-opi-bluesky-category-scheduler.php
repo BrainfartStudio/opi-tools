@@ -10,8 +10,8 @@ class OPI_Bluesky_Category_Scheduler {
     public static function init(): void {
         OPI_Cron_Helper::register_interval( 'opi_bluesky_daily', DAY_IN_SECONDS, __( 'Once Daily', 'opi-bluesky' ) );
 
-        add_action( 'opi_bluesky_category_process',              [ __CLASS__, 'process_slot' ] );
-        add_action( 'update_option_' . self::OPTION_KEY,         [ __CLASS__, 'reschedule_cron' ] );
+        add_action( 'opi_bluesky_category_process',          [ __CLASS__, 'process_slot' ] );
+        add_action( 'update_option_' . self::OPTION_KEY,     [ __CLASS__, 'reschedule_cron' ] );
     }
 
     // ── Settings helpers ─────────────────────────────────────────────────────
@@ -47,7 +47,6 @@ class OPI_Bluesky_Category_Scheduler {
             ];
         }
 
-        // Sort by time ascending.
         usort( $sanitized, fn( $a, $b ) => strcmp( $a['time'], $b['time'] ) );
 
         return $sanitized;
@@ -56,7 +55,7 @@ class OPI_Bluesky_Category_Scheduler {
     // ── Cron ─────────────────────────────────────────────────────────────────
 
     /**
-     * Called every minute by opi_bluesky_process (piggybacks on the existing cron).
+     * Called every minute via opi_bluesky_process.
      * Checks if any slot's time has just passed and fires it.
      */
     public static function process_slot(): void {
@@ -66,7 +65,7 @@ class OPI_Bluesky_Category_Scheduler {
 
         $slots   = self::get_slots();
         $now     = current_time( 'timestamp' );
-        $day_key = strtolower( date( 'D', $now ) ); // mon, tue, etc.
+        $day_key = strtolower( date( 'D', $now ) );
         $hhmm    = date( 'H:i', $now );
 
         foreach ( $slots as $slot ) {
@@ -78,12 +77,11 @@ class OPI_Bluesky_Category_Scheduler {
                 continue;
             }
 
-            // Prevent double-firing within the same minute.
             $lock_key = 'opibluesky_slot_fired_' . md5( $slot['time'] . $slot['category_id'] );
             if ( get_transient( $lock_key ) ) {
                 continue;
             }
-            set_transient( $lock_key, 1, 90 ); // 90s lock
+            set_transient( $lock_key, 1, 90 );
 
             self::fire_slot( (int) $slot['category_id'] );
         }

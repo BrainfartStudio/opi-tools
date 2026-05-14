@@ -6,12 +6,12 @@ defined( 'ABSPATH' ) || exit;
 class OPI_Bluesky_Admin {
 
     public static function init(): void {
-        add_action( 'admin_enqueue_scripts',               [ __CLASS__, 'enqueue_scripts' ] );
-        add_action( 'wp_ajax_opibluesky_test_connection',  [ __CLASS__, 'ajax_test_connection' ] );
-        add_action( 'wp_ajax_opibluesky_delete_post',      [ __CLASS__, 'ajax_delete_post' ] );
-        add_action( 'wp_ajax_opibluesky_add_category',     [ __CLASS__, 'ajax_add_category' ] );
-        add_action( 'wp_ajax_opibluesky_delete_category',  [ __CLASS__, 'ajax_delete_category' ] );
-        add_action( 'wp_ajax_opibluesky_rename_category',  [ __CLASS__, 'ajax_rename_category' ] );
+        add_action( 'admin_enqueue_scripts',              [ __CLASS__, 'enqueue_scripts' ] );
+        add_action( 'wp_ajax_opibluesky_test_connection', [ __CLASS__, 'ajax_test_connection' ] );
+        add_action( 'wp_ajax_opibluesky_delete_post',    [ __CLASS__, 'ajax_delete_post' ] );
+        add_action( 'wp_ajax_opibluesky_add_category',    [ __CLASS__, 'ajax_add_category' ] );
+        add_action( 'wp_ajax_opibluesky_delete_category', [ __CLASS__, 'ajax_delete_category' ] );
+        add_action( 'wp_ajax_opibluesky_rename_category', [ __CLASS__, 'ajax_rename_category' ] );
     }
 
     public static function enqueue_scripts( string $hook ): void {
@@ -85,7 +85,7 @@ class OPI_Bluesky_Admin {
     }
 
     public static function ajax_add_category(): void {
-        check_ajax_referer( 'opi_admin_nonce', 'nonce' );
+        check_ajax_referer( 'opibluesky_nonce', 'nonce' );
 
         if ( ! current_user_can( 'manage_options' ) ) {
             wp_send_json_error( 'Insufficient permissions.' );
@@ -97,19 +97,19 @@ class OPI_Bluesky_Admin {
         }
 
         $result = wp_insert_term( $name, 'bsky_post_category' );
+
         if ( is_wp_error( $result ) ) {
             wp_send_json_error( $result->get_error_message() );
         }
 
-        $term = get_term( $result['term_id'], 'bsky_post_category' );
         wp_send_json_success( [
-            'term_id' => $term->term_id,
-            'name'    => $term->name,
+            'term_id' => $result['term_id'],
+            'name'    => $name,
         ] );
     }
 
     public static function ajax_delete_category(): void {
-        check_ajax_referer( 'opi_admin_nonce', 'nonce' );
+        check_ajax_referer( 'opibluesky_nonce', 'nonce' );
 
         if ( ! current_user_can( 'manage_options' ) ) {
             wp_send_json_error( 'Insufficient permissions.' );
@@ -121,6 +121,7 @@ class OPI_Bluesky_Admin {
         }
 
         $result = wp_delete_term( $term_id, 'bsky_post_category' );
+
         if ( is_wp_error( $result ) ) {
             wp_send_json_error( $result->get_error_message() );
         }
@@ -129,7 +130,7 @@ class OPI_Bluesky_Admin {
     }
 
     public static function ajax_rename_category(): void {
-        check_ajax_referer( 'opi_admin_nonce', 'nonce' );
+        check_ajax_referer( 'opibluesky_nonce', 'nonce' );
 
         if ( ! current_user_can( 'manage_options' ) ) {
             wp_send_json_error( 'Insufficient permissions.' );
@@ -143,10 +144,11 @@ class OPI_Bluesky_Admin {
         }
 
         $result = wp_update_term( $term_id, 'bsky_post_category', [ 'name' => $name ] );
+
         if ( is_wp_error( $result ) ) {
             wp_send_json_error( $result->get_error_message() );
         }
 
-        wp_send_json_success();
+        wp_send_json_success( [ 'name' => $name ] );
     }
 }
