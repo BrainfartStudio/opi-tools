@@ -10,8 +10,8 @@ class OPI_Bluesky_Category_Scheduler {
     public static function init(): void {
         OPI_Cron_Helper::register_interval( 'opi_bluesky_daily', DAY_IN_SECONDS, __( 'Once Daily', 'opi-bluesky' ) );
 
-        add_action( 'opi_bluesky_category_process',          [ __CLASS__, 'process_slot' ] );
-        add_action( 'update_option_' . self::OPTION_KEY,     [ __CLASS__, 'reschedule_cron' ] );
+        add_action( 'opi_bluesky_category_process',      [ __CLASS__, 'process_slot' ] );
+        add_action( 'update_option_' . self::OPTION_KEY, [ __CLASS__, 'reschedule_cron' ] );
     }
 
     // ── Settings helpers ─────────────────────────────────────────────────────
@@ -22,6 +22,16 @@ class OPI_Bluesky_Category_Scheduler {
 
     public static function update_slots( array $slots ): bool {
         return update_option( self::OPTION_KEY, $slots );
+    }
+
+    /**
+     * Get slots for a specific category only.
+     */
+    public static function get_slots_for_category( int $category_id ): array {
+        return array_values( array_filter(
+            self::get_slots(),
+            fn( $slot ) => (int) $slot['category_id'] === $category_id
+        ) );
     }
 
     /**
@@ -52,11 +62,94 @@ class OPI_Bluesky_Category_Scheduler {
         return $sanitized;
     }
 
+    // ── Estimated send times ─────────────────────────────────────────────────
+
+    /**
+     * Return an array of the next $count slot fire timestamps for a category.
+     *
+     * Walks forward from now, day by day, checking each slot's time and days.
+     * Returns timestamps in ascending order — one per queue position.
+     *
+     * Example: category posts daily at 23:00. $count = 3 returns
+     * [ tonight_at_23:00, tomorrow_at_23:00, day_after_at_23:00 ]
+     * (skipping today if 23:00 has already passed).
+     *
+     * @param int $category_id
+     * @param int $count Number of upcoming fire times to return.
+     * @return int[]     Unix timestamps, length <= $count (may be shorter if no slots configured).
+     */
+    public static function get_next_send_times( int $category_id, int $count ): array {
+        if ( $count <= 0 ) {
+            return [];
+        }
+
+        $slots = self::get_slots_for_category( $category_id );
+        if ( empty( $slots ) ) {
+            return [];
+        }
+
+        $times    = [];
+        $now      = current_datetime();
+        $tz       = wp_timezone();
+        $cursor   = clone $now;
+
+        // Walk up to 365 days forward to find $count firing times.
+        // In practice this terminates in $count / slots_per_day days.
+        $max_days = 365;
+        $day      = 0;
+
+        while ( count( $times ) < $count && $day < $max_days ) {
+            $day_key = strtolower( $cursor->format( 'D' ) );
+
+            foreach ( $slots as $slot ) {
+                if ( ! in_array( $day_key, $slot['days'], true ) ) {
+                    continue;
+                }
+
+                [ $hour, $minute ] = explode( ':', $slot['time'] );
+
+                $candidate = DateTimeImmutable::createFromFormat(
+                    'Y-m-d H:i:s',
+                    $cursor->format( 'Y-m-d' ) . ' ' . sprintf( '%02d:%02d:00', (int) $hour, (int) $minute ),
+                    $tz
+                );
+
+                if ( ! $candidate ) {
+                    continue;
+                }
+
+                // Skip times that have already passed today.
+                if ( $candidate->getTimestamp() <= $now->getTimestamp() ) {
+                    continue;
+                }
+
+                $times[] = $candidate->getTimestamp();
+
+                if ( count( $times ) >= $count ) {
+                    break;
+                }
+            }
+
+            // Advance to next day at midnight.
+            $cursor = DateTimeImmutable::createFromFormat(
+                'Y-m-d H:i:s',
+                $cursor->format( 'Y-m-d' ) . ' 00:00:00',
+                $tz
+            )->modify( '+1 day' );
+
+            $day++;
+        }
+
+        sort( $times );
+
+        return array_slice( $times, 0, $count );
+    }
+
     // ── Cron ─────────────────────────────────────────────────────────────────
 
     /**
      * Called every minute via opi_bluesky_process.
-     * Checks if any slot's time has just passed and fires it.
+     * Checks if any slot's time matches now and fires it.
      */
     public static function process_slot(): void {
         if ( ! OPI_Bluesky_Settings::is_configured() ) {
@@ -88,30 +181,11 @@ class OPI_Bluesky_Category_Scheduler {
     }
 
     /**
-     * Fire the next pending post in a category.
+     * Fire the next pending post in a category, respecting queue order.
      */
     private static function fire_slot( int $category_id ): void {
-        $posts = get_posts( [
-            'post_type'   => OPI_Bluesky_Post_Type::CPT,
-            'post_status' => 'publish',
-            'numberposts' => 1,
-            'tax_query'   => [
-                [
-                    'taxonomy' => 'bsky_post_category',
-                    'field'    => 'term_id',
-                    'terms'    => $category_id,
-                ],
-            ],
-            'meta_query'  => [
-                [
-                    'key'     => '_bsky_sent',
-                    'value'   => '0',
-                    'compare' => '=',
-                ],
-            ],
-            'orderby'     => 'date',
-            'order'       => 'ASC',
-        ] );
+        // get_queued() returns posts sorted by _bsky_queue_order ASC — first in queue is index 0.
+        $posts = OPI_Bluesky_Post_Type::get_queued( $category_id );
 
         if ( empty( $posts ) ) {
             return;
@@ -161,7 +235,6 @@ class OPI_Bluesky_Category_Scheduler {
 
     /**
      * Hook: when slots option is updated, unschedule category cron if no slots remain.
-     * Category process piggybacks on opi_bluesky_process — no separate cron needed.
      */
     public static function reschedule_cron(): void {
         if ( empty( self::get_slots() ) ) {
