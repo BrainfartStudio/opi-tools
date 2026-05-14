@@ -3,7 +3,7 @@
  * Plugin Name: OPI Bluesky
  * Plugin URI:  https://github.com/BrainfartStudio/opi-tools
  * Description: Bluesky integration — auto-post on publish, scheduled posts, reposts, and replies.
- * Version:     0.1.0
+ * Version:     1.0.0
  * Author:      Mitchell Opitz
  * License:     GPL-2.0-or-later
  * Text Domain: opi-bluesky
