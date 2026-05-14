@@ -15,7 +15,7 @@ class OPI_Bluesky_Admin {
     }
 
     public static function enqueue_scripts( string $hook ): void {
-        if ( $hook !== 'toplevel_page_opi-bluesky' ) {
+        if ( $hook !== 'opi-tools_page_opi-bluesky' ) {
             return;
         }
 
