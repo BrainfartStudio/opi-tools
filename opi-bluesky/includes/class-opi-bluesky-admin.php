@@ -6,23 +6,26 @@ defined( 'ABSPATH' ) || exit;
 class OPI_Bluesky_Admin {
 
     public static function init(): void {
-        add_action( 'admin_enqueue_scripts',              [ __CLASS__, 'enqueue_scripts' ] );
-        add_action( 'wp_ajax_opibluesky_test_connection', [ __CLASS__, 'ajax_test_connection' ] );
-        add_action( 'wp_ajax_opibluesky_delete_post',    [ __CLASS__, 'ajax_delete_post' ] );
-        add_action( 'wp_ajax_opibluesky_add_category',    [ __CLASS__, 'ajax_add_category' ] );
-        add_action( 'wp_ajax_opibluesky_delete_category', [ __CLASS__, 'ajax_delete_category' ] );
-        add_action( 'wp_ajax_opibluesky_rename_category', [ __CLASS__, 'ajax_rename_category' ] );
+        add_action( 'admin_enqueue_scripts',               [ __CLASS__, 'enqueue_scripts' ] );
+        add_action( 'wp_ajax_opibluesky_test_connection',  [ __CLASS__, 'ajax_test_connection' ] );
+        add_action( 'wp_ajax_opibluesky_delete_post',      [ __CLASS__, 'ajax_delete_post' ] );
+        add_action( 'wp_ajax_opibluesky_add_category',     [ __CLASS__, 'ajax_add_category' ] );
+        add_action( 'wp_ajax_opibluesky_delete_category',  [ __CLASS__, 'ajax_delete_category' ] );
+        add_action( 'wp_ajax_opibluesky_rename_category',  [ __CLASS__, 'ajax_rename_category' ] );
+        add_action( 'wp_ajax_opibluesky_reorder_queue',    [ __CLASS__, 'ajax_reorder_queue' ] );
     }
 
     public static function enqueue_scripts( string $hook ): void {
-        if ( $hook !== 'opi-tools_page_opi-bluesky' ) {
+        // After Core menu refactor each sub-plugin is a top-level page.
+        // Hook name for top-level pages is: toplevel_page_{slug}
+        if ( $hook !== 'toplevel_page_opi-bluesky' ) {
             return;
         }
 
         wp_enqueue_script(
             'opibluesky-admin',
             OPIBLUESKY_URL . 'assets/js/admin.js',
-            [ 'jquery' ],
+            [ 'jquery', 'jquery-ui-sortable' ],
             OPIBLUESKY_VERSION,
             true
         );
@@ -150,5 +153,28 @@ class OPI_Bluesky_Admin {
         }
 
         wp_send_json_success( [ 'name' => $name ] );
+    }
+
+    /**
+     * Reorder the queue for a category.
+     *
+     * Expects POST: category_id (int), post_ids (array of ints in desired order).
+     */
+    public static function ajax_reorder_queue(): void {
+        check_ajax_referer( 'opibluesky_nonce', 'nonce' );
+
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error( 'Insufficient permissions.' );
+        }
+
+        $category_id = absint( $_POST['category_id'] ?? 0 );
+        $post_ids    = array_map( 'absint', (array) ( $_POST['post_ids'] ?? [] ) );
+
+        if ( ! $category_id || empty( $post_ids ) ) {
+            wp_send_json_error( 'category_id and post_ids are required.' );
+        }
+
+        OPI_Bluesky_Post_Type::reorder_queue( $category_id, $post_ids );
+        wp_send_json_success();
     }
 }
