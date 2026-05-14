@@ -129,6 +129,369 @@ $base_url = admin_url( 'admin.php?page=opi-bluesky' );
 
     <?php echo $message; ?>
 
+    <?php if ( $action === 'list' ) :
+
+        // ── Fetch data ───────────────────────────────────────────────────────
+        $tab = sanitize_key( $_GET['tab'] ?? 'all' );
+
+        $scheduled_posts = OPI_Bluesky_Post_Type::get_scheduled();
+        $queued_posts    = OPI_Bluesky_Post_Type::get_queued();
+
+        // Build estimated send times for every queued post.
+        // Group queued posts by category, then assign timestamps from get_next_send_times().
+        $queued_by_cat = [];
+        foreach ( $queued_posts as $qp ) {
+            $terms = wp_get_object_terms( $qp->ID, 'bsky_post_category', [ 'fields' => 'ids' ] );
+            $cat   = ( ! is_wp_error( $terms ) && ! empty( $terms ) ) ? (int) $terms[0] : 0;
+            $queued_by_cat[ $cat ][] = $qp;
+        }
+
+        $estimated_times = []; // post_id => timestamp
+        foreach ( $queued_by_cat as $cat_id => $cat_posts ) {
+            $count  = count( $cat_posts );
+            $times  = $cat_id ? OPI_Bluesky_Category_Scheduler::get_next_send_times( $cat_id, $count ) : [];
+            foreach ( $cat_posts as $i => $qp ) {
+                $estimated_times[ $qp->ID ] = $times[ $i ] ?? 0;
+            }
+        }
+
+        // Build combined list for All tab, sorted by send time (scheduled exact, queued estimated).
+        $all_posts = [];
+        foreach ( $scheduled_posts as $sp ) {
+            $all_posts[] = [
+                'post'      => $sp,
+                'mode'      => 'scheduled',
+                'send_time' => (int) get_post_meta( $sp->ID, '_bsky_scheduled_at', true ),
+                'category'  => null,
+            ];
+        }
+        foreach ( $queued_posts as $qp ) {
+            $terms = wp_get_object_terms( $qp->ID, 'bsky_post_category', [ 'fields' => 'names' ] );
+            $all_posts[] = [
+                'post'      => $qp,
+                'mode'      => 'queued',
+                'send_time' => $estimated_times[ $qp->ID ] ?? 0,
+                'category'  => ( ! is_wp_error( $terms ) && ! empty( $terms ) ) ? $terms[0] : '—',
+            ];
+        }
+        usort( $all_posts, fn( $a, $b ) => $a['send_time'] <=> $b['send_time'] );
+
+        $dt_format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
+
+        // Collect all categories for the Queued tab filter.
+        $all_categories    = get_terms( [ 'taxonomy' => 'bsky_post_category', 'hide_empty' => false ] );
+        if ( is_wp_error( $all_categories ) ) $all_categories = [];
+        $filter_cat_id     = absint( $_GET['cat'] ?? 0 );
+        ?>
+
+        <nav class="nav-tab-wrapper" style="margin:0 0 20px;">
+            <a href="<?php echo esc_url( add_query_arg( [ 'tab' => 'all' ], $base_url ) ); ?>"
+               class="nav-tab <?php echo $tab === 'all' ? 'nav-tab-active' : ''; ?>">
+                <?php _e( 'All', 'opi-bluesky' ); ?>
+                <span class="count">(<?php echo count( $all_posts ); ?>)</span>
+            </a>
+            <a href="<?php echo esc_url( add_query_arg( [ 'tab' => 'scheduled' ], $base_url ) ); ?>"
+               class="nav-tab <?php echo $tab === 'scheduled' ? 'nav-tab-active' : ''; ?>">
+                <?php _e( 'Scheduled', 'opi-bluesky' ); ?>
+                <span class="count">(<?php echo count( $scheduled_posts ); ?>)</span>
+            </a>
+            <a href="<?php echo esc_url( add_query_arg( [ 'tab' => 'queued' ], $base_url ) ); ?>"
+               class="nav-tab <?php echo $tab === 'queued' ? 'nav-tab-active' : ''; ?>">
+                <?php _e( 'Queued', 'opi-bluesky' ); ?>
+                <span class="count">(<?php echo count( $queued_posts ); ?>)</span>
+            </a>
+        </nav>
+
+        <?php // ── ALL TAB ──────────────────────────────────────────────────
+        if ( $tab === 'all' ) : ?>
+
+            <?php if ( empty( $all_posts ) ) : ?>
+                <p><?php _e( 'No upcoming posts.', 'opi-bluesky' ); ?></p>
+            <?php else : ?>
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th><?php _e( 'Content', 'opi-bluesky' ); ?></th>
+                            <th style="width:90px;"><?php _e( 'Type', 'opi-bluesky' ); ?></th>
+                            <th style="width:100px;"><?php _e( 'Mode', 'opi-bluesky' ); ?></th>
+                            <th style="width:130px;"><?php _e( 'Category', 'opi-bluesky' ); ?></th>
+                            <th style="width:160px;"><?php _e( 'Send Time', 'opi-bluesky' ); ?></th>
+                            <th style="width:80px;"><?php _e( 'Actions', 'opi-bluesky' ); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ( $all_posts as $row ) :
+                            $p        = $row['post'];
+                            $bsky_type = get_post_meta( $p->ID, '_bsky_type', true ) ?: 'post';
+                            $type_labels = [ 'post' => __( 'Post', 'opi-bluesky' ), 'repost' => __( 'Repost', 'opi-bluesky' ), 'reply' => __( 'Reply', 'opi-bluesky' ) ];
+                            $send_label  = $row['send_time'] ? wp_date( $dt_format, $row['send_time'] ) : '—';
+                            $edit_url    = add_query_arg( [ 'action' => 'edit', 'post_id' => $p->ID ], $base_url );
+                        ?>
+                            <tr>
+                                <td><?php echo esc_html( wp_trim_words( $p->post_content, 15, '…' ) ); ?></td>
+                                <td><?php echo esc_html( $type_labels[ $bsky_type ] ?? $bsky_type ); ?></td>
+                                <td>
+                                    <span class="opi-status-badge opi-status-badge--<?php echo $row['mode'] === 'scheduled' ? 'ok' : 'warn'; ?>">
+                                        <?php echo $row['mode'] === 'scheduled' ? esc_html__( 'Scheduled', 'opi-bluesky' ) : esc_html__( 'Queued', 'opi-bluesky' ); ?>
+                                    </span>
+                                </td>
+                                <td><?php echo esc_html( $row['category'] ?? '—' ); ?></td>
+                                <td><?php echo esc_html( $send_label ); ?></td>
+                                <td>
+                                    <a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small"><?php _e( 'Edit', 'opi-bluesky' ); ?></a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+
+        <?php // ── SCHEDULED TAB ────────────────────────────────────────────
+        elseif ( $tab === 'scheduled' ) : ?>
+
+            <?php if ( empty( $scheduled_posts ) ) : ?>
+                <p><?php _e( 'No scheduled posts.', 'opi-bluesky' ); ?></p>
+            <?php else : ?>
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th><?php _e( 'Content', 'opi-bluesky' ); ?></th>
+                            <th style="width:90px;"><?php _e( 'Type', 'opi-bluesky' ); ?></th>
+                            <th style="width:180px;"><?php _e( 'Send Time', 'opi-bluesky' ); ?></th>
+                            <th style="width:100px;"><?php _e( 'Actions', 'opi-bluesky' ); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ( $scheduled_posts as $p ) :
+                            $bsky_type   = get_post_meta( $p->ID, '_bsky_type', true ) ?: 'post';
+                            $type_labels = [ 'post' => __( 'Post', 'opi-bluesky' ), 'repost' => __( 'Repost', 'opi-bluesky' ), 'reply' => __( 'Reply', 'opi-bluesky' ) ];
+                            $ts          = (int) get_post_meta( $p->ID, '_bsky_scheduled_at', true );
+                            $edit_url    = add_query_arg( [ 'action' => 'edit', 'post_id' => $p->ID ], $base_url );
+                        ?>
+                            <tr>
+                                <td><?php echo esc_html( wp_trim_words( $p->post_content, 15, '…' ) ); ?></td>
+                                <td><?php echo esc_html( $type_labels[ $bsky_type ] ?? $bsky_type ); ?></td>
+                                <td><?php echo $ts ? esc_html( wp_date( $dt_format, $ts ) ) : '—'; ?></td>
+                                <td>
+                                    <a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small"><?php _e( 'Edit', 'opi-bluesky' ); ?></a>
+                                    <button type="button" class="button button-small opibluesky-delete-post" data-post-id="<?php echo $p->ID; ?>" style="margin-top:2px;">
+                                        <?php _e( 'Delete', 'opi-bluesky' ); ?>
+                                    </button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+
+        <?php // ── QUEUED TAB ───────────────────────────────────────────────
+        elseif ( $tab === 'queued' ) : ?>
+
+            <?php if ( ! empty( $all_categories ) ) : ?>
+                <div style="margin-bottom:16px;">
+                    <label for="bsky_queue_cat_filter"><strong><?php _e( 'Category:', 'opi-bluesky' ); ?></strong></label>
+                    <select id="bsky_queue_cat_filter" style="margin-left:8px;">
+                        <option value="0"><?php _e( '— All categories —', 'opi-bluesky' ); ?></option>
+                        <?php foreach ( $all_categories as $cat ) : ?>
+                            <option value="<?php echo esc_attr( $cat->term_id ); ?>"
+                                    <?php selected( $filter_cat_id, $cat->term_id ); ?>>
+                                <?php echo esc_html( $cat->name ); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            <?php endif; ?>
+
+            <?php
+            // Group queued posts by category for display.
+            // If a category filter is active, only show that category.
+            $display_cats = [];
+            foreach ( $all_categories as $cat ) {
+                if ( $filter_cat_id && $cat->term_id !== $filter_cat_id ) continue;
+                $cat_queue = OPI_Bluesky_Post_Type::get_queued( $cat->term_id );
+                if ( empty( $cat_queue ) ) continue;
+                $cat_times = OPI_Bluesky_Category_Scheduler::get_next_send_times( $cat->term_id, count( $cat_queue ) );
+                $display_cats[] = [ 'term' => $cat, 'posts' => $cat_queue, 'times' => $cat_times ];
+            }
+
+            // Posts with no category.
+            $uncategorized = OPI_Bluesky_Post_Type::get_queued( 0 );
+            $uncategorized = array_filter( $uncategorized, function( $qp ) {
+                $terms = wp_get_object_terms( $qp->ID, 'bsky_post_category', [ 'fields' => 'ids' ] );
+                return is_wp_error( $terms ) || empty( $terms );
+            } );
+            ?>
+
+            <?php if ( empty( $display_cats ) && empty( $uncategorized ) ) : ?>
+                <p><?php _e( 'No queued posts.', 'opi-bluesky' ); ?></p>
+            <?php endif; ?>
+
+            <?php foreach ( $display_cats as $dc ) :
+                $slots_configured = ! empty( OPI_Bluesky_Category_Scheduler::get_slots_for_category( $dc['term']->term_id ) );
+            ?>
+                <div class="opi-card" style="margin-bottom:20px;">
+                    <h3 class="opi-section-header" style="display:flex;align-items:center;gap:12px;">
+                        <?php echo esc_html( $dc['term']->name ); ?>
+                        <?php if ( ! $slots_configured ) : ?>
+                            <span class="opi-status-badge opi-status-badge--warn" style="font-size:11px;">
+                                <?php _e( 'No slot configured', 'opi-bluesky' ); ?>
+                            </span>
+                        <?php endif; ?>
+                    </h3>
+
+                    <table class="wp-list-table widefat fixed"
+                           id="bsky-queue-<?php echo esc_attr( $dc['term']->term_id ); ?>"
+                           data-category-id="<?php echo esc_attr( $dc['term']->term_id ); ?>">
+                        <thead>
+                            <tr>
+                                <th style="width:32px;"></th>
+                                <th><?php _e( 'Content', 'opi-bluesky' ); ?></th>
+                                <th style="width:90px;"><?php _e( 'Type', 'opi-bluesky' ); ?></th>
+                                <th style="width:180px;"><?php _e( 'Est. Send Time', 'opi-bluesky' ); ?></th>
+                                <th style="width:100px;"><?php _e( 'Actions', 'opi-bluesky' ); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody class="bsky-sortable">
+                            <?php foreach ( $dc['posts'] as $i => $p ) :
+                                $bsky_type   = get_post_meta( $p->ID, '_bsky_type', true ) ?: 'post';
+                                $type_labels = [ 'post' => __( 'Post', 'opi-bluesky' ), 'repost' => __( 'Repost', 'opi-bluesky' ), 'reply' => __( 'Reply', 'opi-bluesky' ) ];
+                                $est_time    = $dc['times'][ $i ] ?? 0;
+                                $edit_url    = add_query_arg( [ 'action' => 'edit', 'post_id' => $p->ID ], $base_url );
+                            ?>
+                                <tr data-post-id="<?php echo $p->ID; ?>">
+                                    <td class="bsky-drag-handle" style="cursor:grab;text-align:center;color:#aaa;" title="<?php esc_attr_e( 'Drag to reorder', 'opi-bluesky' ); ?>">
+                                        ⠿
+                                    </td>
+                                    <td><?php echo esc_html( wp_trim_words( $p->post_content, 15, '…' ) ); ?></td>
+                                    <td><?php echo esc_html( $type_labels[ $bsky_type ] ?? $bsky_type ); ?></td>
+                                    <td><?php echo $est_time ? esc_html( wp_date( $dt_format, $est_time ) ) : '<em>' . esc_html__( 'No slot', 'opi-bluesky' ) . '</em>'; ?></td>
+                                    <td>
+                                        <a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small"><?php _e( 'Edit', 'opi-bluesky' ); ?></a>
+                                        <button type="button" class="button button-small opibluesky-delete-post" data-post-id="<?php echo $p->ID; ?>" style="margin-top:2px;">
+                                            <?php _e( 'Delete', 'opi-bluesky' ); ?>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endforeach; ?>
+
+            <?php if ( ! empty( $uncategorized ) ) : ?>
+                <div class="opi-card">
+                    <h3 class="opi-section-header">
+                        <?php _e( 'Uncategorized', 'opi-bluesky' ); ?>
+                        <span class="opi-status-badge opi-status-badge--warn" style="font-size:11px;margin-left:10px;">
+                            <?php _e( 'No category assigned', 'opi-bluesky' ); ?>
+                        </span>
+                    </h3>
+                    <table class="wp-list-table widefat fixed">
+                        <thead>
+                            <tr>
+                                <th><?php _e( 'Content', 'opi-bluesky' ); ?></th>
+                                <th style="width:90px;"><?php _e( 'Type', 'opi-bluesky' ); ?></th>
+                                <th style="width:100px;"><?php _e( 'Actions', 'opi-bluesky' ); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ( $uncategorized as $p ) :
+                                $bsky_type   = get_post_meta( $p->ID, '_bsky_type', true ) ?: 'post';
+                                $type_labels = [ 'post' => __( 'Post', 'opi-bluesky' ), 'repost' => __( 'Repost', 'opi-bluesky' ), 'reply' => __( 'Reply', 'opi-bluesky' ) ];
+                                $edit_url    = add_query_arg( [ 'action' => 'edit', 'post_id' => $p->ID ], $base_url );
+                            ?>
+                                <tr>
+                                    <td><?php echo esc_html( wp_trim_words( $p->post_content, 15, '…' ) ); ?></td>
+                                    <td><?php echo esc_html( $type_labels[ $bsky_type ] ?? $bsky_type ); ?></td>
+                                    <td>
+                                        <a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small"><?php _e( 'Edit', 'opi-bluesky' ); ?></a>
+                                        <button type="button" class="button button-small opibluesky-delete-post" data-post-id="<?php echo $p->ID; ?>" style="margin-top:2px;">
+                                            <?php _e( 'Delete', 'opi-bluesky' ); ?>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+
+        <?php endif; // tab ?>
+
+        <script>
+        jQuery( document ).ready( function( $ ) {
+
+            // ── Delete post ───────────────────────────────────────────────
+            $( document ).on( 'click', '.opibluesky-delete-post', function() {
+                if ( ! confirm( '<?php echo esc_js( __( 'Delete this post?', 'opi-bluesky' ) ); ?>' ) ) return;
+                var $btn   = $( this );
+                var postId = $btn.data( 'post-id' );
+                $btn.prop( 'disabled', true );
+                $.post( opiBlueskyAdmin.ajaxUrl, {
+                    action:  'opibluesky_delete_post',
+                    nonce:   opiBlueskyAdmin.nonce,
+                    post_id: postId,
+                }, function( response ) {
+                    if ( response.success ) {
+                        $btn.closest( 'tr' ).fadeOut( 200, function() { $( this ).remove(); } );
+                    } else {
+                        alert( 'Delete failed: ' + response.data );
+                        $btn.prop( 'disabled', false );
+                    }
+                } ).fail( function() {
+                    alert( 'Server error.' );
+                    $btn.prop( 'disabled', false );
+                } );
+            } );
+
+            // ── Category filter (Queued tab) ──────────────────────────────
+            $( '#bsky_queue_cat_filter' ).on( 'change', function() {
+                var catId = $( this ).val();
+                var url   = new URL( window.location.href );
+                url.searchParams.set( 'tab', 'queued' );
+                if ( catId && catId !== '0' ) {
+                    url.searchParams.set( 'cat', catId );
+                } else {
+                    url.searchParams.delete( 'cat' );
+                }
+                window.location.href = url.toString();
+            } );
+
+            // ── Drag-and-drop reorder (Queued tab) ────────────────────────
+            $( '.bsky-sortable' ).sortable( {
+                handle:      '.bsky-drag-handle',
+                axis:        'y',
+                cursor:      'grabbing',
+                placeholder: 'ui-state-highlight',
+                update: function( event, ui ) {
+                    var $table     = $( this ).closest( 'table' );
+                    var categoryId = $table.data( 'category-id' );
+                    var postIds    = [];
+
+                    $( this ).find( 'tr' ).each( function() {
+                        postIds.push( $( this ).data( 'post-id' ) );
+                    } );
+
+                    $.post( opiBlueskyAdmin.ajaxUrl, {
+                        action:      'opibluesky_reorder_queue',
+                        nonce:       opiBlueskyAdmin.nonce,
+                        category_id: categoryId,
+                        post_ids:    postIds,
+                    }, function( response ) {
+                        if ( ! response.success ) {
+                            alert( 'Reorder failed: ' + response.data );
+                        }
+                    } ).fail( function() {
+                        alert( 'Server error saving order.' );
+                    } );
+                },
+            } );
+
+        } );
+        </script>
+
+    <?php endif; // list ?>
+
     <?php if ( in_array( $action, [ 'new', 'edit' ], true ) ) : ?>
 
         <?php
