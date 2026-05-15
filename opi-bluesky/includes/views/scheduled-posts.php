@@ -272,9 +272,9 @@ $base_url = admin_url( 'admin.php?page=opi-bluesky' );
                                 <td><?php echo esc_html( wp_trim_words( $p->post_content, 15, '…' ) ); ?></td>
                                 <td><?php echo esc_html( $type_labels[ $bsky_type ] ?? $bsky_type ); ?></td>
                                 <td><?php echo $ts ? esc_html( wp_date( $dt_format, $ts ) ) : '—'; ?></td>
-                                <td>
+                                <td style="display:flex;align-items:center;gap:4px;">
                                     <a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small"><?php _e( 'Edit', 'opi-bluesky' ); ?></a>
-                                    <button type="button" class="button button-small opibluesky-delete-post" data-post-id="<?php echo $p->ID; ?>" style="margin-top:2px;">
+                                    <button type="button" class="button button-small opibluesky-delete-post" data-post-id="<?php echo $p->ID; ?>">
                                         <?php _e( 'Delete', 'opi-bluesky' ); ?>
                                     </button>
                                 </td>
@@ -365,9 +365,9 @@ $base_url = admin_url( 'admin.php?page=opi-bluesky' );
                                     <td><?php echo esc_html( wp_trim_words( $p->post_content, 15, '…' ) ); ?></td>
                                     <td><?php echo esc_html( $type_labels[ $bsky_type ] ?? $bsky_type ); ?></td>
                                     <td><?php echo $est_time ? esc_html( wp_date( $dt_format, $est_time ) ) : '<em>' . esc_html__( 'No slot', 'opi-bluesky' ) . '</em>'; ?></td>
-                                    <td>
+                                    <td style="display:flex;align-items:center;gap:4px;">
                                         <a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small"><?php _e( 'Edit', 'opi-bluesky' ); ?></a>
-                                        <button type="button" class="button button-small opibluesky-delete-post" data-post-id="<?php echo $p->ID; ?>" style="margin-top:2px;">
+                                        <button type="button" class="button button-small opibluesky-delete-post" data-post-id="<?php echo $p->ID; ?>">
                                             <?php _e( 'Delete', 'opi-bluesky' ); ?>
                                         </button>
                                     </td>
@@ -403,9 +403,9 @@ $base_url = admin_url( 'admin.php?page=opi-bluesky' );
                                 <tr>
                                     <td><?php echo esc_html( wp_trim_words( $p->post_content, 15, '…' ) ); ?></td>
                                     <td><?php echo esc_html( $type_labels[ $bsky_type ] ?? $bsky_type ); ?></td>
-                                    <td>
+                                    <td style="display:flex;align-items:center;gap:4px;">
                                         <a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small"><?php _e( 'Edit', 'opi-bluesky' ); ?></a>
-                                        <button type="button" class="button button-small opibluesky-delete-post" data-post-id="<?php echo $p->ID; ?>" style="margin-top:2px;">
+                                        <button type="button" class="button button-small opibluesky-delete-post" data-post-id="<?php echo $p->ID; ?>">
                                             <?php _e( 'Delete', 'opi-bluesky' ); ?>
                                         </button>
                                     </td>
