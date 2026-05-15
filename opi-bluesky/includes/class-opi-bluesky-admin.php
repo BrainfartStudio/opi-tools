@@ -12,7 +12,8 @@ class OPI_Bluesky_Admin {
         add_action( 'wp_ajax_opibluesky_add_category',     [ __CLASS__, 'ajax_add_category' ] );
         add_action( 'wp_ajax_opibluesky_delete_category',  [ __CLASS__, 'ajax_delete_category' ] );
         add_action( 'wp_ajax_opibluesky_rename_category',  [ __CLASS__, 'ajax_rename_category' ] );
-        add_action( 'wp_ajax_opibluesky_reorder_queue',    [ __CLASS__, 'ajax_reorder_queue' ] );
+        add_action( 'wp_ajax_opibluesky_reorder_queue',       [ __CLASS__, 'ajax_reorder_queue' ] );
+        add_action( 'wp_ajax_opibluesky_get_estimated_times', [ __CLASS__, 'ajax_get_estimated_times' ] );
     }
 
     public static function enqueue_scripts( string $hook ): void {
@@ -175,5 +176,40 @@ class OPI_Bluesky_Admin {
 
         OPI_Bluesky_Post_Type::reorder_queue( $category_id, $post_ids );
         wp_send_json_success();
+    }
+
+    /**
+     * Return estimated send times for all queued posts in a category, in queue order.
+     *
+     * Expects POST: category_id (int)
+     * Returns: [ { post_id: int, estimated_time: string }, ... ]
+     */
+    public static function ajax_get_estimated_times(): void {
+        check_ajax_referer( 'opibluesky_nonce', 'nonce' );
+
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error( 'Insufficient permissions.' );
+        }
+
+        $category_id = absint( $_POST['category_id'] ?? 0 );
+        if ( ! $category_id ) {
+            wp_send_json_error( 'category_id is required.' );
+        }
+
+        $posts  = OPI_Bluesky_Post_Type::get_queued( $category_id );
+        $count  = count( $posts );
+        $times  = OPI_Bluesky_Category_Scheduler::get_next_send_times( $category_id, $count );
+        $format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
+
+        $result = [];
+        foreach ( $posts as $i => $post ) {
+            $ts       = $times[ $i ] ?? 0;
+            $result[] = [
+                'post_id'        => $post->ID,
+                'estimated_time' => $ts ? wp_date( $format, $ts ) : '',
+            ];
+        }
+
+        wp_send_json_success( $result );
     }
 }

@@ -464,11 +464,12 @@ $base_url = admin_url( 'admin.php?page=opi-bluesky' );
                 cursor:      'grabbing',
                 placeholder: 'ui-state-highlight',
                 update: function( event, ui ) {
-                    var $table     = $( this ).closest( 'table' );
+                    var $tbody     = $( this );
+                    var $table     = $tbody.closest( 'table' );
                     var categoryId = $table.data( 'category-id' );
                     var postIds    = [];
 
-                    $( this ).find( 'tr' ).each( function() {
+                    $tbody.find( 'tr' ).each( function() {
                         postIds.push( $( this ).data( 'post-id' ) );
                     } );
 
@@ -480,7 +481,34 @@ $base_url = admin_url( 'admin.php?page=opi-bluesky' );
                     }, function( response ) {
                         if ( ! response.success ) {
                             alert( 'Reorder failed: ' + response.data );
+                            return;
                         }
+
+                        // Refresh estimated send times for this category.
+                        $.post( opiBlueskyAdmin.ajaxUrl, {
+                            action:      'opibluesky_get_estimated_times',
+                            nonce:       opiBlueskyAdmin.nonce,
+                            category_id: categoryId,
+                        }, function( res ) {
+                            if ( ! res.success ) return;
+
+                            // Build a lookup: post_id => estimated_time string.
+                            var timeMap = {};
+                            $.each( res.data, function( i, item ) {
+                                timeMap[ item.post_id ] = item.estimated_time;
+                            } );
+
+                            // Update each row's Est. Send Time cell (4th td, index 3).
+                            $tbody.find( 'tr' ).each( function() {
+                                var pid  = $( this ).data( 'post-id' );
+                                var $td  = $( this ).find( 'td' ).eq( 3 );
+                                var time = timeMap[ pid ];
+                                $td.html( time
+                                    ? $( '<span>' ).text( time )
+                                    : '<em><?php echo esc_js( __( 'No slot', 'opi-bluesky' ) ); ?></em>'
+                                );
+                            } );
+                        } );
                     } ).fail( function() {
                         alert( 'Server error saving order.' );
                     } );
