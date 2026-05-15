@@ -20,6 +20,10 @@ add_action( 'plugins_loaded', function() {
     OPI_Bluesky::init();
 }, 5 );
 
+add_action( 'plugins_loaded', function() {
+    add_action( 'opi_tools_register_plugins', [ 'OPI_Bluesky', 'register_with_core' ] );
+}, 15 );
+
 register_activation_hook( __FILE__, function() {
     require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky.php';
     OPI_Bluesky::activate();

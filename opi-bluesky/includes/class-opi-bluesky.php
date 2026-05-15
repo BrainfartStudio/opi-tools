@@ -21,8 +21,6 @@ class OPI_Bluesky {
         OPI_Bluesky_Category_Scheduler::init();
         OPI_Bluesky_Scheduler::init();
         OPI_Bluesky_Admin::init();
-
-        add_action( 'opi_tools_register_plugins', [ __CLASS__, 'register_with_core' ] );
     }
 
     public static function activate(): void {
@@ -108,7 +106,6 @@ class OPI_Bluesky {
                 $pending   = count( OPI_Bluesky_Post_Type::get_queued( $cat->term_id ) );
                 $has_slot  = ! empty( OPI_Bluesky_Category_Scheduler::get_slots_for_category( $cat->term_id ) );
 
-                // Warn: category has posts queued but no slot to send them.
                 if ( $pending > 0 && ! $has_slot ) {
                     return [
                         'severity'   => 'warn',
@@ -121,7 +118,6 @@ class OPI_Bluesky {
                     ];
                 }
 
-                // Warn: slot configured but queue is empty.
                 if ( $has_slot && $pending === 0 ) {
                     return [
                         'severity'   => 'warn',
@@ -133,7 +129,6 @@ class OPI_Bluesky {
                     ];
                 }
 
-                // Warn: queue running low (fewer than 3 remaining).
                 if ( $has_slot && $pending < 3 ) {
                     return [
                         'severity'   => 'warn',
