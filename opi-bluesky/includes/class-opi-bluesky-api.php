@@ -59,7 +59,12 @@ class OPI_Bluesky_API {
         }
 
         if ( $embed_url ) {
-            $embed = self::build_url_embed( $embed_url );
+            $local_post = self::get_local_post_for_url( $embed_url );
+            if ( $local_post ) {
+                $embed = self::build_external_embed( $local_post, $embed_url );
+            } else {
+                $embed = self::build_url_embed( $embed_url );
+            }
             if ( ! is_wp_error( $embed ) ) {
                 $record['embed'] = $embed;
             }
@@ -193,6 +198,27 @@ class OPI_Bluesky_API {
         return null;
     }
 
+    /**
+     * If $url is a permalink for a post on this site, return that WP_Post.
+     * Returns null for external URLs or if no post matches.
+     */
+    private static function get_local_post_for_url( string $url ): ?\WP_Post {
+        $site_host = wp_parse_url( home_url(), PHP_URL_HOST );
+        $url_host  = wp_parse_url( $url, PHP_URL_HOST );
+
+        if ( ! $site_host || ! $url_host || $url_host !== $site_host ) {
+            return null;
+        }
+
+        $post_id = url_to_postid( $url );
+        if ( ! $post_id ) {
+            return null;
+        }
+
+        $post = get_post( $post_id );
+        return ( $post instanceof \WP_Post ) ? $post : null;
+    }
+
     // -------------------------------------------------------------------------
     // Internal helpers
     // -------------------------------------------------------------------------
@@ -262,8 +288,17 @@ class OPI_Bluesky_API {
      * @return array|\WP_Error
      */
     private static function build_url_embed( string $url ): array|\WP_Error {
+        // Skip fetching URLs on the same domain — servers typically block loopback
+        // HTTP requests, which would cause the cron process to hang until timeout
+        // and prevent the post from being sent at all.
+        $site_host = wp_parse_url( home_url(), PHP_URL_HOST );
+        $url_host  = wp_parse_url( $url, PHP_URL_HOST );
+        if ( $site_host && $url_host && $url_host === $site_host ) {
+            return new \WP_Error( 'bsky_og_loopback', 'Skipping OG fetch for same-domain URL.' );
+        }
+
         $response = wp_remote_get( $url, [
-            'timeout'    => 10,
+            'timeout'    => 5,
             'user-agent' => 'Mozilla/5.0 (compatible; OPI-Bluesky-Bot/1.0)',
         ] );
 
