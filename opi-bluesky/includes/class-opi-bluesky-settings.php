@@ -20,7 +20,6 @@ class OPI_Bluesky_Settings extends OPI_Settings_Base {
             'identifier'           => '',
             'app_password'         => '',
             'auto_post_on_publish' => true,
-            'category_slots'       => [],
         ];
     }
 
@@ -41,7 +40,6 @@ class OPI_Bluesky_Settings extends OPI_Settings_Base {
             'identifier'           => sanitize_text_field( $input['identifier'] ?? '' ),
             'app_password'         => $app_password,
             'auto_post_on_publish' => ! empty( $input['auto_post_on_publish'] ),
-            'category_slots'       => $input['category_slots'] ?? [],
         ];
     }
 
