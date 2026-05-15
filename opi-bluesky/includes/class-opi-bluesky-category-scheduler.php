@@ -8,10 +8,7 @@ class OPI_Bluesky_Category_Scheduler {
     const OPTION_KEY = 'opibluesky_category_slots';
 
     public static function init(): void {
-        OPI_Cron_Helper::register_interval( 'opi_bluesky_daily', DAY_IN_SECONDS, __( 'Once Daily', 'opi-bluesky' ) );
-
-        add_action( 'opi_bluesky_category_process',      [ __CLASS__, 'process_slot' ] );
-        add_action( 'update_option_' . self::OPTION_KEY, [ __CLASS__, 'reschedule_cron' ] );
+        add_action( 'opi_bluesky_category_process', [ __CLASS__, 'process_slot' ] );
     }
 
     // ── Settings helpers ─────────────────────────────────────────────────────
@@ -231,14 +228,5 @@ class OPI_Bluesky_Category_Scheduler {
         }
 
         return OPI_Bluesky_API::post_text( $post->post_content, $reply_ref );
-    }
-
-    /**
-     * Hook: when slots option is updated, unschedule category cron if no slots remain.
-     */
-    public static function reschedule_cron(): void {
-        if ( empty( self::get_slots() ) ) {
-            OPI_Cron_Helper::unschedule( 'opi_bluesky_category_process' );
-        }
     }
 }
