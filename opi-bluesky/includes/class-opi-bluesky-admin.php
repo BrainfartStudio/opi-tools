@@ -16,9 +16,8 @@ class OPI_Bluesky_Admin {
     }
 
     public static function enqueue_scripts( string $hook ): void {
-        // After Core menu refactor each sub-plugin is a top-level page.
-        // Hook name for top-level pages is: toplevel_page_{slug}
-        if ( $hook !== 'toplevel_page_opi-bluesky' ) {
+        // Sub-plugins registered under opi-tools get hook: opi-tools_page_{slug}
+        if ( $hook !== 'opi-tools_page_opi-bluesky' ) {
             return;
         }
 
