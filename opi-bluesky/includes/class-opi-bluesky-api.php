@@ -16,9 +16,10 @@ class OPI_Bluesky_API {
             return $token;
         }
 
-        $did  = OPI_Bluesky_Auth::get_did();
-        $url  = get_permalink( $post );
-        $text = get_the_title( $post ) . "\n\n" . $url;
+        $did   = OPI_Bluesky_Auth::get_did();
+        $url   = get_permalink( $post );
+        $title = html_entity_decode( get_the_title( $post ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+        $text  = $title . "\n\n" . $url;
 
         $record = [
             '$type'     => 'app.bsky.feed.post',
@@ -27,7 +28,7 @@ class OPI_Bluesky_API {
             'embed'     => self::build_external_embed( $post, $url ),
         ];
 
-        $url_start = strlen( get_the_title( $post ) . "\n\n" );
+        $url_start = strlen( $title . "\n\n" );
         $url_end   = $url_start + strlen( $url );
 
         $record['facets'] = [
