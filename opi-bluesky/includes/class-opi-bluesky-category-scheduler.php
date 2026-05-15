@@ -193,7 +193,7 @@ class OPI_Bluesky_Category_Scheduler {
         $result = match ( $type ) {
             'repost' => self::dispatch_repost( $post ),
             'reply'  => self::dispatch_reply( $post ),
-            default  => OPI_Bluesky_API::post_text( $post->post_content ),
+            default  => self::dispatch_post( $post ),
         };
 
         if ( is_wp_error( $result ) ) {
@@ -201,6 +201,15 @@ class OPI_Bluesky_Category_Scheduler {
         } else {
             OPI_Bluesky_Post_Type::mark_sent( $post->ID, $result['uri'] ?? '', $result['cid'] ?? '' );
         }
+    }
+
+    /**
+     * Post plain text, attaching a link card embed if the content contains a URL.
+     */
+    private static function dispatch_post( \WP_Post $post ): array|\WP_Error {
+        $content = $post->post_content;
+        $url     = OPI_Bluesky_API::extract_first_url( $content );
+        return OPI_Bluesky_API::post_text( $content, null, $url ?: null );
     }
 
     private static function dispatch_repost( \WP_Post $post ): array|\WP_Error {

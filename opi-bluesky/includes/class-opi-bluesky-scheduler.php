@@ -36,7 +36,7 @@ class OPI_Bluesky_Scheduler {
         $result = match ( $type ) {
             'repost' => self::handle_repost( $ref_uri, $ref_cid, $content ),
             'reply'  => self::handle_reply( $ref_uri, $content ),
-            default  => OPI_Bluesky_API::post_text( $content ),
+            default  => self::handle_post( $content ),
         };
 
         if ( is_wp_error( $result ) ) {
@@ -48,6 +48,14 @@ class OPI_Bluesky_Scheduler {
                 $result['cid'] ?? ''
             );
         }
+    }
+
+    /**
+     * Post plain text, attaching a link card embed if the content contains a URL.
+     */
+    private static function handle_post( string $content ): array|\WP_Error {
+        $url = OPI_Bluesky_API::extract_first_url( $content );
+        return OPI_Bluesky_API::post_text( $content, null, $url ?: null );
     }
 
     /**

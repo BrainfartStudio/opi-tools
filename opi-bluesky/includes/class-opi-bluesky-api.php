@@ -38,8 +38,9 @@ class OPI_Bluesky_API {
 
     /**
      * Post arbitrary text to Bluesky.
+     * If $embed_url is provided, attaches a link card embed fetched from that URL's OG tags.
      */
-    public static function post_text( string $text, ?array $reply_ref = null ): array|\WP_Error {
+    public static function post_text( string $text, ?array $reply_ref = null, ?string $embed_url = null ): array|\WP_Error {
         $token = OPI_Bluesky_Auth::get_access_token();
         if ( is_wp_error( $token ) ) {
             return $token;
@@ -55,6 +56,13 @@ class OPI_Bluesky_API {
 
         if ( $reply_ref ) {
             $record['reply'] = $reply_ref;
+        }
+
+        if ( $embed_url ) {
+            $embed = self::build_url_embed( $embed_url );
+            if ( ! is_wp_error( $embed ) ) {
+                $record['embed'] = $embed;
+            }
         }
 
         $facets = self::build_facets( $text );
@@ -173,6 +181,18 @@ class OPI_Bluesky_API {
         ];
     }
 
+    /**
+     * Extract the first HTTP(S) URL from a string.
+     * Returns the URL string or null if none found.
+     */
+    public static function extract_first_url( string $text ): ?string {
+        $pattern = '/https?:\/\/[^\s\]\[\(\)<>"\']+[^\s\]\[\(\)<>"\'\.,;:!?]/u';
+        if ( preg_match( $pattern, $text, $matches ) ) {
+            return $matches[0];
+        }
+        return null;
+    }
+
     // -------------------------------------------------------------------------
     // Internal helpers
     // -------------------------------------------------------------------------
@@ -232,6 +252,116 @@ class OPI_Bluesky_API {
         }
 
         return $facets;
+    }
+
+    /**
+     * Build an external embed by fetching OG tags from a URL.
+     * Returns a WP_Error on fetch failure; falls back gracefully on missing tags.
+     *
+     * @param string $url The URL to fetch and build an embed for.
+     * @return array|\WP_Error
+     */
+    private static function build_url_embed( string $url ): array|\WP_Error {
+        $response = wp_remote_get( $url, [
+            'timeout'    => 10,
+            'user-agent' => 'Mozilla/5.0 (compatible; OPI-Bluesky-Bot/1.0)',
+        ] );
+
+        if ( is_wp_error( $response ) ) {
+            return $response;
+        }
+
+        $code = wp_remote_retrieve_response_code( $response );
+        if ( $code !== 200 ) {
+            return new \WP_Error( 'bsky_og_fetch_failed', "URL returned HTTP {$code}." );
+        }
+
+        $html  = wp_remote_retrieve_body( $response );
+        $title = self::parse_og_tag( $html, 'og:title' )
+                 ?: self::parse_html_title( $html )
+                 ?: $url;
+
+        $description = self::parse_og_tag( $html, 'og:description' )
+                       ?: self::parse_meta_description( $html )
+                       ?: '';
+
+        $thumb_url = self::parse_og_tag( $html, 'og:image' );
+
+        $embed = [
+            '$type'    => 'app.bsky.embed.external',
+            'external' => [
+                'uri'         => $url,
+                'title'       => $title,
+                'description' => $description,
+            ],
+        ];
+
+        if ( $thumb_url ) {
+            $token      = OPI_Bluesky_Auth::get_access_token();
+            $thumb_blob = self::upload_blob_from_url( $token, $thumb_url );
+            if ( ! is_wp_error( $thumb_blob ) && $thumb_blob ) {
+                $embed['external']['thumb'] = $thumb_blob;
+            }
+        }
+
+        return $embed;
+    }
+
+    /**
+     * Extract an OG meta property value from HTML.
+     */
+    private static function parse_og_tag( string $html, string $property ): string {
+        if ( preg_match(
+            '/<meta[^>]+property=["\']' . preg_quote( $property, '/' ) . '["\'][^>]+content=["\']([^"\']+)["\'][^>]*>/i',
+            $html,
+            $m
+        ) ) {
+            return html_entity_decode( trim( $m[1] ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+        }
+
+        // Also handle reversed attribute order: content first, then property.
+        if ( preg_match(
+            '/<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']' . preg_quote( $property, '/' ) . '["\'][^>]*>/i',
+            $html,
+            $m
+        ) ) {
+            return html_entity_decode( trim( $m[1] ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+        }
+
+        return '';
+    }
+
+    /**
+     * Extract <title> from HTML.
+     */
+    private static function parse_html_title( string $html ): string {
+        if ( preg_match( '/<title[^>]*>([^<]+)<\/title>/i', $html, $m ) ) {
+            return html_entity_decode( trim( $m[1] ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+        }
+        return '';
+    }
+
+    /**
+     * Extract <meta name="description"> from HTML.
+     */
+    private static function parse_meta_description( string $html ): string {
+        if ( preg_match(
+            '/<meta[^>]+name=["\']description["\'][^>]+content=["\']([^"\']+)["\'][^>]*>/i',
+            $html,
+            $m
+        ) ) {
+            return html_entity_decode( trim( $m[1] ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+        }
+
+        if ( preg_match(
+            '/<meta[^>]+content=["\']([^"\']+)["\'][^>]+name=["\']description["\'][^>]*>/i',
+            $html,
+            $m
+        ) ) {
+            return html_entity_decode( trim( $m[1] ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+        }
+
+        return '';
     }
 
     private static function build_external_embed( \WP_Post $post, string $url ): array {
@@ -295,6 +425,58 @@ class OPI_Bluesky_API {
         }
 
         return $body['blob'];
+    }
+
+    /**
+     * Download an image from a URL and upload it as a Bluesky blob.
+     */
+    private static function upload_blob_from_url( string $token, string $image_url ): array|\WP_Error {
+        $response = wp_remote_get( $image_url, [
+            'timeout' => 15,
+        ] );
+
+        if ( is_wp_error( $response ) ) {
+            return $response;
+        }
+
+        $code = wp_remote_retrieve_response_code( $response );
+        if ( $code !== 200 ) {
+            return new \WP_Error( 'bsky_thumb_fetch_failed', "Thumbnail URL returned HTTP {$code}." );
+        }
+
+        $data = wp_remote_retrieve_body( $response );
+        $mime = wp_remote_retrieve_header( $response, 'content-type' );
+
+        // Strip charset or boundary suffix if present.
+        if ( $mime && str_contains( $mime, ';' ) ) {
+            $mime = trim( explode( ';', $mime )[0] );
+        }
+
+        if ( ! $mime || ! str_starts_with( $mime, 'image/' ) ) {
+            $mime = 'image/jpeg';
+        }
+
+        $upload_response = wp_remote_post( self::BSKY_API . '/com.atproto.repo.uploadBlob', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Content-Type'  => $mime,
+            ],
+            'body'    => $data,
+            'timeout' => 30,
+        ] );
+
+        if ( is_wp_error( $upload_response ) ) {
+            return $upload_response;
+        }
+
+        $upload_code = wp_remote_retrieve_response_code( $upload_response );
+        $upload_body = json_decode( wp_remote_retrieve_body( $upload_response ), true );
+
+        if ( $upload_code !== 200 || empty( $upload_body['blob'] ) ) {
+            return new \WP_Error( 'bsky_blob_failed', $upload_body['message'] ?? 'Blob upload failed.' );
+        }
+
+        return $upload_body['blob'];
     }
 
     private static function create_record( string $token, string $did, array $record, string $collection = 'app.bsky.feed.post' ): array|\WP_Error {
