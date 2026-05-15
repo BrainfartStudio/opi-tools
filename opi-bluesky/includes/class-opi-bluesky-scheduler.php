@@ -88,7 +88,9 @@ class OPI_Bluesky_Scheduler {
             return $reply_ref;
         }
 
-        return OPI_Bluesky_API::post_text( $content, $reply_ref );
+        $url = OPI_Bluesky_API::extract_first_url( $content );
+
+        return OPI_Bluesky_API::post_text( $content, $reply_ref, $url ?: null );
     }
 
     /**

@@ -215,6 +215,7 @@ class OPI_Bluesky_Category_Scheduler {
     private static function dispatch_repost( \WP_Post $post ): array|\WP_Error {
         $ref_uri = OPI_Bluesky_Scheduler::normalize_uri( get_post_meta( $post->ID, '_bsky_ref_uri', true ) );
         $ref_cid = get_post_meta( $post->ID, '_bsky_ref_cid', true );
+        $content = $post->post_content;
 
         if ( ! $ref_cid ) {
             $resolved = OPI_Bluesky_API::resolve_post( $ref_uri );
@@ -223,6 +224,10 @@ class OPI_Bluesky_Category_Scheduler {
             }
             $ref_uri = $resolved['uri'];
             $ref_cid = $resolved['cid'];
+        }
+
+        if ( ! empty( trim( $content ) ) ) {
+            return OPI_Bluesky_API::quote_post( $content, $ref_uri, $ref_cid );
         }
 
         return OPI_Bluesky_API::repost( $ref_uri, $ref_cid );
@@ -236,6 +241,9 @@ class OPI_Bluesky_Category_Scheduler {
             return $reply_ref;
         }
 
-        return OPI_Bluesky_API::post_text( $post->post_content, $reply_ref );
+        $content = $post->post_content;
+        $url     = OPI_Bluesky_API::extract_first_url( $content );
+
+        return OPI_Bluesky_API::post_text( $content, $reply_ref, $url ?: null );
     }
 }
