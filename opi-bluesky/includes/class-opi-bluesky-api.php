@@ -28,23 +28,10 @@ class OPI_Bluesky_API {
             'embed'     => self::build_external_embed( $post, $url ),
         ];
 
-        $url_start = strlen( $title . "\n\n" );
-        $url_end   = $url_start + strlen( $url );
-
-        $record['facets'] = [
-            [
-                'index'    => [
-                    'byteStart' => $url_start,
-                    'byteEnd'   => $url_end,
-                ],
-                'features' => [
-                    [
-                        '$type' => 'app.bsky.richtext.facet#link',
-                        'uri'   => $url,
-                    ],
-                ],
-            ],
-        ];
+        $facets = self::build_facets( $text );
+        if ( ! empty( $facets ) ) {
+            $record['facets'] = $facets;
+        }
 
         return self::create_record( $token, $did, $record );
     }
@@ -68,6 +55,11 @@ class OPI_Bluesky_API {
 
         if ( $reply_ref ) {
             $record['reply'] = $reply_ref;
+        }
+
+        $facets = self::build_facets( $text );
+        if ( ! empty( $facets ) ) {
+            $record['facets'] = $facets;
         }
 
         return self::create_record( $token, $did, $record );
@@ -184,6 +176,63 @@ class OPI_Bluesky_API {
     // -------------------------------------------------------------------------
     // Internal helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * Scan $text and return Bluesky facets for all URLs and #hashtags.
+     *
+     * All offsets are UTF-8 byte positions as required by the AT Protocol.
+     * PREG_OFFSET_CAPTURE returns byte offsets by default in PHP, and
+     * strlen() returns byte length — both correct for Bluesky facets.
+     */
+    private static function build_facets( string $text ): array {
+        $facets = [];
+
+        // ── URLs ──────────────────────────────────────────────────────────────
+        // Matches http:// and https:// URLs, stopping at whitespace or common
+        // trailing punctuation unlikely to be part of the URL.
+        $url_pattern = '/https?:\/\/[^\s\]\[\(\)<>"\']+[^\s\]\[\(\)<>"\'\.,;:!?]/u';
+
+        if ( preg_match_all( $url_pattern, $text, $url_matches, PREG_OFFSET_CAPTURE ) ) {
+            foreach ( $url_matches[0] as [ $url, $byte_start ] ) {
+                $facets[] = [
+                    'index'    => [
+                        'byteStart' => $byte_start,
+                        'byteEnd'   => $byte_start + strlen( $url ),
+                    ],
+                    'features' => [
+                        [
+                            '$type' => 'app.bsky.richtext.facet#link',
+                            'uri'   => $url,
+                        ],
+                    ],
+                ];
+            }
+        }
+
+        // ── Hashtags ──────────────────────────────────────────────────────────
+        // Matches #word — letters, numbers, underscores.
+        // Negative lookbehind prevents matching inside URLs (e.g. example.com/#anchor).
+        $tag_pattern = '/(?<![\/\w])#(\w+)/u';
+
+        if ( preg_match_all( $tag_pattern, $text, $tag_matches, PREG_OFFSET_CAPTURE ) ) {
+            foreach ( $tag_matches[0] as $i => [ $full_match, $byte_start ] ) {
+                $facets[] = [
+                    'index'    => [
+                        'byteStart' => $byte_start,
+                        'byteEnd'   => $byte_start + strlen( $full_match ),
+                    ],
+                    'features' => [
+                        [
+                            '$type' => 'app.bsky.richtext.facet#tag',
+                            'tag'   => $tag_matches[1][ $i ][0],
+                        ],
+                    ],
+                ];
+            }
+        }
+
+        return $facets;
+    }
 
     private static function build_external_embed( \WP_Post $post, string $url ): array {
         $description = get_the_excerpt( $post );
