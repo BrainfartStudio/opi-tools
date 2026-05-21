@@ -75,9 +75,27 @@ register_activation_hook( __FILE__, function() {
         ] );
     }
 
-    // Cron helper may not be loaded yet at activation time — load it directly.
+    // Cron helper may not be loaded at activation time — locate Core relative
+    // to this plugin's directory rather than assuming a folder name.
     if ( ! class_exists( 'OPI_Cron_Helper' ) ) {
-        $core_path = WP_PLUGIN_DIR . '/opi-tools/includes/class-opi-cron-helper.php';
+        $core_path = trailingslashit( dirname( plugin_dir_path( __FILE__ ), 2 ) )
+                     . 'opi-tools/includes/class-opi-cron-helper.php';
+
+        if ( ! file_exists( $core_path ) ) {
+            // Fallback: scan active plugins for OPI Tools Core bootstrap.
+            $active = get_option( 'active_plugins', [] );
+            foreach ( $active as $plugin_file ) {
+                if ( str_ends_with( $plugin_file, '/functions.php' ) ) {
+                    $candidate = WP_PLUGIN_DIR . '/' . dirname( $plugin_file )
+                                 . '/includes/class-opi-cron-helper.php';
+                    if ( file_exists( $candidate ) ) {
+                        $core_path = $candidate;
+                        break;
+                    }
+                }
+            }
+        }
+
         if ( file_exists( $core_path ) ) {
             require_once $core_path;
         }
