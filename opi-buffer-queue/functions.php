@@ -29,7 +29,7 @@ function opi_buffer_check_core(): void {
         echo '</p></div>';
     } );
 }
-add_action( 'plugins_loaded', 'opi_buffer_check_core', 0 );
+add_action( 'plugins_loaded', 'opi_buffer_check_core', 2 );
 
 /**
  * Load all includes and boot the plugin.
