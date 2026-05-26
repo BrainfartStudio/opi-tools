@@ -27,7 +27,7 @@ if ( isset( $_POST['opitools_save'] ) && check_admin_referer( 'opitools_settings
 
     <nav class="nav-tab-wrapper" style="margin-bottom:20px;">
         <?php foreach ( $tabs as $tab_key => $tab_label ) : ?>
-            <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-tools&view=' . $tab_key ) ); ?>"
+            <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-core&view=' . $tab_key ) ); ?>"
                class="nav-tab <?php echo $view === $tab_key ? 'nav-tab-active' : ''; ?>">
                 <?php echo esc_html( $tab_label ); ?>
             </a>
