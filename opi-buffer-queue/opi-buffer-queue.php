@@ -85,7 +85,7 @@ register_activation_hook( __FILE__, function() {
             // Fallback: scan active plugins for OPI Tools Core bootstrap.
             $active = get_option( 'active_plugins', [] );
             foreach ( $active as $plugin_file ) {
-                if ( str_ends_with( $plugin_file, '/functions.php' ) ) {
+                if ( str_ends_with( $plugin_file, '/opi-core.php' ) ) {
                     $candidate = WP_PLUGIN_DIR . '/' . dirname( $plugin_file )
                                  . '/includes/class-opi-cron-helper.php';
                     if ( file_exists( $candidate ) ) {
