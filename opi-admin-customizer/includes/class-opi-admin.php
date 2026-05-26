@@ -38,7 +38,7 @@ class OPI_Admin {
         check_admin_referer( 'opiadmin_action' );
 
         if ( ! current_user_can( 'manage_options' ) ) {
-            wp_die( __( 'Sorry, you are not allowed to do that.', 'opi-admin' ) );
+            wp_die( __( 'Sorry, you are not allowed to do that.', 'opi-admin-customizer' ) );
         }
 
         $sanitized = OPI_Admin_Settings::sanitize( $_POST[ OPI_Admin_Settings::OPTION_KEY ] ?? [] );
@@ -58,7 +58,7 @@ class OPI_Admin {
         check_admin_referer( 'opiadmin_reset_action' );
 
         if ( ! current_user_can( 'manage_options' ) ) {
-            wp_die( __( 'Sorry, you are not allowed to do that.', 'opi-admin' ) );
+            wp_die( __( 'Sorry, you are not allowed to do that.', 'opi-admin-customizer' ) );
         }
 
         OPI_Admin_Settings::update( OPI_Admin_Settings::get_defaults() );

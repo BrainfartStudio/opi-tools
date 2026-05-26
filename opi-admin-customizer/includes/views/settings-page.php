@@ -7,16 +7,16 @@ $settings = OPI_Admin_Settings::get();
 $message  = '';
 
 if ( isset( $_GET['saved'] ) ) {
-    $message = OPI_Tools::notice( 'success', __( 'Settings saved.', 'opi-admin' ) );
+    $message = OPI_Tools::notice( 'success', __( 'Settings saved.', 'opi-admin-customizer' ) );
 }
 
 if ( isset( $_GET['reset'] ) ) {
-    $message = OPI_Tools::notice( 'success', __( 'Settings reset to defaults.', 'opi-admin' ) );
+    $message = OPI_Tools::notice( 'success', __( 'Settings reset to defaults.', 'opi-admin-customizer' ) );
 }
 ?>
 
 <div class="wrap">
-    <h1><?php _e( 'Admin Customizer', 'opi-admin' ); ?></h1>
+    <h1><?php _e( 'Admin Customizer', 'opi-admin-customizer' ); ?></h1>
 
     <?php echo $message; ?>
 
@@ -26,10 +26,10 @@ if ( isset( $_GET['reset'] ) ) {
 
         <!-- Sidebar -->
         <div class="opi-card">
-            <h2 class="opi-section-header"><?php _e( 'Sidebar', 'opi-admin' ); ?></h2>
+            <h2 class="opi-section-header"><?php _e( 'Sidebar', 'opi-admin-customizer' ); ?></h2>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Width (px)', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Width (px)', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <input type="number" min="100" max="400"
                            name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_width]"
@@ -41,7 +41,7 @@ if ( isset( $_GET['reset'] ) ) {
             </div>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Background Color', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Background Color', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
@@ -56,7 +56,7 @@ if ( isset( $_GET['reset'] ) ) {
             </div>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Text Color', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Text Color', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
@@ -71,7 +71,7 @@ if ( isset( $_GET['reset'] ) ) {
             </div>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Icon Color', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Icon Color', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
@@ -86,7 +86,7 @@ if ( isset( $_GET['reset'] ) ) {
             </div>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Highlight Color', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Highlight Color', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
@@ -101,7 +101,7 @@ if ( isset( $_GET['reset'] ) ) {
             </div>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Submenu Background', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Submenu Background', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
@@ -116,7 +116,7 @@ if ( isset( $_GET['reset'] ) ) {
             </div>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Open Item Background', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Open Item Background', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
@@ -131,26 +131,26 @@ if ( isset( $_GET['reset'] ) ) {
             </div>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Third-party Icon Style', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Third-party Icon Style', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <select name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_icon_filter]"
                             id="opiadmin-icon-filter">
                         <option value="light" <?php selected( $settings['sidebar_icon_filter'], 'light' ); ?>>
-                            <?php _e( 'Light (white)', 'opi-admin' ); ?>
+                            <?php _e( 'Light (white)', 'opi-admin-customizer' ); ?>
                         </option>
                         <option value="dark" <?php selected( $settings['sidebar_icon_filter'], 'dark' ); ?>>
-                            <?php _e( 'Dark (black)', 'opi-admin' ); ?>
+                            <?php _e( 'Dark (black)', 'opi-admin-customizer' ); ?>
                         </option>
                         <option value="none" <?php selected( $settings['sidebar_icon_filter'], 'none' ); ?>>
-                            <?php _e( 'None (original colors)', 'opi-admin' ); ?>
+                            <?php _e( 'None (original colors)', 'opi-admin-customizer' ); ?>
                         </option>
                     </select>
-                    <p class="description"><?php _e( 'Controls the color of SVG/image icons from third-party plugins.', 'opi-admin' ); ?></p>
+                    <p class="description"><?php _e( 'Controls the color of SVG/image icons from third-party plugins.', 'opi-admin-customizer' ); ?></p>
                 </div>
             </div>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Font Size (px)', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Font Size (px)', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <input type="number" min="10" max="24"
                            name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_font_size]"
@@ -162,7 +162,7 @@ if ( isset( $_GET['reset'] ) ) {
             </div>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Icon Size (px)', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Icon Size (px)', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <input type="number" min="10" max="32"
                            name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_icon_size]"
@@ -176,10 +176,10 @@ if ( isset( $_GET['reset'] ) ) {
 
         <!-- Top Bar -->
         <div class="opi-card">
-            <h2 class="opi-section-header"><?php _e( 'Top Bar', 'opi-admin' ); ?></h2>
+            <h2 class="opi-section-header"><?php _e( 'Top Bar', 'opi-admin-customizer' ); ?></h2>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Background Color', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Background Color', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
@@ -194,7 +194,7 @@ if ( isset( $_GET['reset'] ) ) {
             </div>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Text / Icon Color', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Text / Icon Color', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
@@ -209,7 +209,7 @@ if ( isset( $_GET['reset'] ) ) {
             </div>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Height (px)', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Height (px)', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <input type="number" min="28" max="80"
                            name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[topbar_height]"
@@ -221,7 +221,7 @@ if ( isset( $_GET['reset'] ) ) {
             </div>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Font Size (px)', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Font Size (px)', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <input type="number" min="10" max="24"
                            name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[topbar_font_size]"
@@ -235,10 +235,10 @@ if ( isset( $_GET['reset'] ) ) {
 
         <!-- Typography -->
         <div class="opi-card">
-            <h2 class="opi-section-header"><?php _e( 'Typography', 'opi-admin' ); ?></h2>
+            <h2 class="opi-section-header"><?php _e( 'Typography', 'opi-admin-customizer' ); ?></h2>
 
             <div class="opi-form-row">
-                <label><?php _e( 'Font Family', 'opi-admin' ); ?></label>
+                <label><?php _e( 'Font Family', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <?php OPI_Google_Fonts::render_selector(
                         OPI_Admin_Settings::OPTION_KEY . '[font_family]',
@@ -250,7 +250,7 @@ if ( isset( $_GET['reset'] ) ) {
 
         <!-- Custom CSS -->
         <div class="opi-card">
-            <h2 class="opi-section-header"><?php _e( 'Custom CSS', 'opi-admin' ); ?></h2>
+            <h2 class="opi-section-header"><?php _e( 'Custom CSS', 'opi-admin-customizer' ); ?></h2>
 
             <div class="opi-form-row">
                 <div class="opi-form-control" style="width:100%;">
@@ -264,14 +264,14 @@ if ( isset( $_GET['reset'] ) ) {
             </div>
         </div>
 
-        <?php submit_button( __( 'Save Settings', 'opi-admin' ), 'primary', 'opiadmin_save' ); ?>
+        <?php submit_button( __( 'Save Settings', 'opi-admin-customizer' ), 'primary', 'opiadmin_save' ); ?>
 
     </form>
 
     <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top: 8px;">
         <?php wp_nonce_field( 'opiadmin_reset_action' ); ?>
         <input type="hidden" name="action" value="opiadmin_reset">
-        <?php submit_button( __( 'Reset to Defaults', 'opi-admin' ), 'secondary', 'opiadmin_reset', false ); ?>
+        <?php submit_button( __( 'Reset to Defaults', 'opi-admin-customizer' ), 'secondary', 'opiadmin_reset', false ); ?>
     </form>
 
 </div>
