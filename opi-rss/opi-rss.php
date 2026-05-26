@@ -15,6 +15,19 @@ define( 'OPI_RSS_VERSION', '1.0.0' );
 define( 'OPI_RSS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'OPI_RSS_URL', plugin_dir_url( __FILE__ ) );
 
+function opi_rss_check_core(): void {
+    if ( class_exists( 'OPI_Tools' ) ) {
+        return;
+    }
+
+    add_action( 'admin_notices', function() {
+        echo '<div class="notice notice-error"><p>';
+        esc_html_e( 'OPI RSS Aggregator requires OPI Tools Core to be installed and active.', 'opi-rss' );
+        echo '</p></div>';
+    } );
+}
+add_action( 'plugins_loaded', 'opi_rss_check_core', 2 );
+
 register_activation_hook( __FILE__, 'opirss_activate' );
 
 function opirss_activate(): void {
@@ -37,6 +50,10 @@ function opirss_uninstall(): void {
 }
 
 add_action( 'plugins_loaded', function() {
+    if ( ! class_exists( 'OPI_Tools' ) ) {
+        return;
+    }
+
     require_once OPI_RSS_PATH . 'includes/class-opi-rss-db.php';
     require_once OPI_RSS_PATH . 'includes/class-opi-rss.php';
     OPI_RSS::init();
