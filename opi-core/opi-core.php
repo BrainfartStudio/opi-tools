@@ -6,7 +6,7 @@
  * Version:     1.0.0
  * Author:      Mitchell Opitz
  * License:     GPL-2.0-or-later
- * Text Domain: opi-tools
+ * Text Domain: opi-core
  */
 
 defined( 'ABSPATH' ) || exit;

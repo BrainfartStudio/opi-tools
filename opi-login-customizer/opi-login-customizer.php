@@ -6,7 +6,7 @@
  * Version:     1.0.0
  * Author:      Mitchell Opitz
  * License:     GPL-2.0-or-later
- * Text Domain: opi-login
+ * Text Domain: opi-login-customizer
  */
 
 defined( 'ABSPATH' ) || exit;
