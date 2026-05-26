@@ -43,8 +43,6 @@ class OPI_Updater {
         );
 
         // Match only tags for this specific plugin, e.g. opi-core-1.0.0
-        $checker->getVcsApi()->enableReleaseAssets(
-            '/' . preg_quote( $tag_prefix, '/' ) . '-[\d.]+\.zip/'
-        );
+        $checker->getVcsApi()->enableReleaseAssets();
     }
 }
