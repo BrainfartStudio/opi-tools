@@ -255,7 +255,7 @@ class OPI_Admin {
                 font-family: var( --opi-admin-font );
             }
 
-            <?php echo wp_strip_all_tags( $s['custom_css'] ); ?>
+            <?php echo esc_html( wp_strip_all_tags( $s['custom_css'] ) ); ?>
         </style>
         <?php
     }
