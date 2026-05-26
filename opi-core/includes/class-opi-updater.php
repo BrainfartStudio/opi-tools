@@ -10,7 +10,7 @@ class OPI_Updater {
     /**
      * GitHub repo in format 'username/repo-name'
      */
-    const GITHUB_REPO = 'YOUR_USERNAME/opi-tools';
+    const GITHUB_REPO = 'BrainfartStudio/opi-tools';
 
     /**
      * Personal access token for private repo access.
