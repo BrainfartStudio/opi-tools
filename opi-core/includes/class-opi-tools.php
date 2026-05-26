@@ -107,6 +107,14 @@ class OPI_Tools {
             true
         );
 
+        wp_enqueue_script(
+            'opi-google-fonts',
+            OPI_CORE_URL . 'assets/js/opi-google-fonts.js',
+            [],
+            OPI_CORE_VERSION,
+            true
+        );
+
         wp_localize_script( 'opi-admin', 'opiAdmin', [
             'ajaxUrl' => admin_url( 'admin-ajax.php' ),
             'nonce'   => wp_create_nonce( 'opi_admin_nonce' ),

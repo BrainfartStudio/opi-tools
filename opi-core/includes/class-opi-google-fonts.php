@@ -70,11 +70,11 @@ class OPI_Google_Fonts {
      * Output a font selector: a <select> of curated fonts plus a freetext <input>.
      */
     public static function render_selector( string $field_name, string $current_value ): void {
-        $fonts          = self::get_popular_fonts();
-        $is_custom      = ! empty( $current_value )
-                          && $current_value !== 'inherit'
-                          && ! in_array( $current_value, $fonts, true );
-        $select_value   = $is_custom ? '__custom__' : $current_value;
+        $fonts        = self::get_popular_fonts();
+        $is_custom    = ! empty( $current_value )
+                        && $current_value !== 'inherit'
+                        && ! in_array( $current_value, $fonts, true );
+        $select_value = $is_custom ? '__custom__' : $current_value;
         ?>
         <select name="<?php echo esc_attr( $field_name ); ?>"
                 id="<?php echo esc_attr( $field_name ); ?>"
@@ -102,35 +102,6 @@ class OPI_Google_Fonts {
         <p class="description">
             <?php _e( 'Choose a font or enter a custom Google Font name.', 'opi-core' ); ?>
         </p>
-
-        <script>
-        ( function() {
-            var sel    = document.getElementById( '<?php echo esc_js( $field_name ); ?>' );
-            var custom = document.getElementById( '<?php echo esc_js( $field_name ); ?>_custom' );
-            if ( ! sel || ! custom ) return;
-
-            sel.addEventListener( 'change', function() {
-                if ( this.value === '__custom__' ) {
-                    custom.style.display = '';
-                    custom.focus();
-                } else {
-                    custom.style.display = 'none';
-                    custom.value = '';
-                }
-            } );
-
-            // On form submit, write custom value back into the select so it posts correctly.
-            sel.closest( 'form' ).addEventListener( 'submit', function() {
-                if ( sel.value === '__custom__' && custom.value.trim() ) {
-                    var opt = document.createElement( 'option' );
-                    opt.value    = custom.value.trim();
-                    opt.selected = true;
-                    sel.appendChild( opt );
-                    sel.value = custom.value.trim();
-                }
-            } );
-        } )();
-        </script>
         <?php
     }
 }
