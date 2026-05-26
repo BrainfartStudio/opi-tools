@@ -86,21 +86,21 @@ $limits = OPI_Buffer_Settings::get_buffer_limits();
         var html =
             '<div class="opi-buffer-rule opi-card" style="margin-bottom:12px;">' +
                 '<div class="opi-form-row">' +
-                    '<label><?php esc_html_e( 'When queue has', 'opi-buffer-queue' ); ?></label>' +
+                    '<label><?php echo esc_js( __( 'When queue has', 'opi-buffer-queue' ) ); ?></label>' +
                     '<div class="opi-form-control">' +
                         '<input type="number" name="opi_buffer_rules[' + ruleIndex + '][min_posts]" value="10" min="0" style="width:80px;"> ' +
-                        '<?php esc_html_e( 'or more posts', 'opi-buffer-queue' ); ?>' +
+                        '<?php echo esc_js( __( 'or more posts', 'opi-buffer-queue' ) ); ?>' +
                     '</div>' +
                 '</div>' +
                 '<div class="opi-form-row">' +
-                    '<label><?php esc_html_e( 'Publish every', 'opi-buffer-queue' ); ?></label>' +
+                    '<label><?php echo esc_js( __( 'Publish every', 'opi-buffer-queue' ) ); ?></label>' +
                     '<div class="opi-form-control">' +
                         '<input type="number" name="opi_buffer_rules[' + ruleIndex + '][interval_days]" value="2" min="1" style="width:80px;"> ' +
-                        '<?php esc_html_e( 'days at', 'opi-buffer-queue' ); ?> ' +
+                        '<?php echo esc_js( __( 'days at', 'opi-buffer-queue' ) ); ?> ' +
                         '<input type="time" name="opi_buffer_rules[' + ruleIndex + '][time]" value="08:00" style="width:120px;">' +
                     '</div>' +
                 '</div>' +
-                '<button type="button" class="button opi-buffer-remove-rule"><?php esc_html_e( 'Remove', 'opi-buffer-queue' ); ?></button>' +
+                '<button type="button" class="button opi-buffer-remove-rule"><?php echo esc_js( __( 'Remove', 'opi-buffer-queue' ) ); ?></button>' +
             '</div>';
 
         $( '#opi-buffer-rules' ).append( html );
