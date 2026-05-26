@@ -75,17 +75,18 @@ register_activation_hook( __FILE__, function() {
         ] );
     }
 
-    if ( ! wp_next_scheduled( 'opi_buffer_process' ) ) {
-        wp_schedule_event( time(), 'opi_buffer_15min', 'opi_buffer_process' );
-    }
-
-    flush_rewrite_rules();
+    OPI_Buffer_Scheduler::activate();
 } );
 
 register_deactivation_hook( __FILE__, function() {
     if ( class_exists( 'OPI_Buffer_Scheduler' ) ) {
         OPI_Buffer_Scheduler::deactivate();
     }
-
-    flush_rewrite_rules();
 } );
+
+register_uninstall_hook( __FILE__, 'opi_buffer_uninstall' );
+
+function opi_buffer_uninstall(): void {
+    delete_option( 'opi_buffer_limits' );
+    wp_clear_scheduled_hook( 'opi_buffer_process' );
+}
