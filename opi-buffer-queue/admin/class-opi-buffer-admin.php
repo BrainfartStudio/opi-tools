@@ -12,7 +12,7 @@ class OPI_Buffer_Admin {
 
     public static function register_with_core(): void {
         OPI_Tools::register_plugin(
-            'opi-buffer',
+            'opi-buffer-queue',
             'Buffer Queue',
             OPI_BUFFER_VERSION,
             [ __CLASS__, 'render_page' ],
@@ -37,7 +37,7 @@ class OPI_Buffer_Admin {
     }
 
     public static function enqueue_scripts( string $hook ): void {
-        if ( $hook !== 'opi-tools_page_opi-buffer' ) {
+        if ( $hook !== 'opi-tools_page_opi-buffer-queue' ) {
             return;
         }
 
@@ -83,7 +83,7 @@ class OPI_Buffer_Admin {
             return [
                 'severity'   => 'error',
                 'message'    => 'Buffer cron is not scheduled.',
-                'action_url' => admin_url( 'admin.php?page=opi-buffer&view=settings' ),
+                'action_url' => admin_url( 'admin.php?page=opi-buffer-queue&view=settings' ),
             ];
         }
 

@@ -16,7 +16,7 @@ class OPI_Buffer_Post_Status {
 
     public static function register_status(): void {
         register_post_status( 'buffer', [
-            'label'                     => _x( 'Buffer', 'post status', 'opi-buffer' ),
+            'label'                     => _x( 'Buffer', 'post status', 'opi-buffer-queue' ),
             'public'                    => false,
             'internal'                  => true,
             'exclude_from_search'       => true,
@@ -25,7 +25,7 @@ class OPI_Buffer_Post_Status {
             'label_count'               => _n_noop(
                 'Buffer <span class="count">(%s)</span>',
                 'Buffer <span class="count">(%s)</span>',
-                'opi-buffer'
+                'opi-buffer-queue'
             ),
         ] );
     }
@@ -45,13 +45,13 @@ class OPI_Buffer_Post_Status {
         <div class="misc-pub-section misc-pub-buffer">
             <?php if ( $is_buffered ) : ?>
                 <span class="dashicons dashicons-clock" style="color:#2271b1;"></span>
-                <strong><?php esc_html_e( 'Status: Buffer', 'opi-buffer' ); ?></strong>
+                <strong><?php esc_html_e( 'Status: Buffer', 'opi-buffer-queue' ); ?></strong>
             <?php else : ?>
                 <button type="button"
                         id="opi-buffer-move-btn"
                         class="button"
                         style="width:100%;margin-top:4px;">
-                    <?php esc_html_e( 'Move to Buffer', 'opi-buffer' ); ?>
+                    <?php esc_html_e( 'Move to Buffer', 'opi-buffer-queue' ); ?>
                 </button>
             <?php endif; ?>
         </div>
@@ -68,7 +68,7 @@ class OPI_Buffer_Post_Status {
                 if ( statusSelect && ! statusSelect.querySelector( 'option[value="buffer"]' ) ) {
                     var opt    = document.createElement( 'option' );
                     opt.value  = 'buffer';
-                    opt.text   = '<?php esc_html_e( 'Buffer', 'opi-buffer' ); ?>';
+                    opt.text   = '<?php esc_html_e( 'Buffer', 'opi-buffer-queue' ); ?>';
                     statusSelect.appendChild( opt );
                 }
 
@@ -77,7 +77,7 @@ class OPI_Buffer_Post_Status {
                 }
 
                 if ( displaySpan ) {
-                    displaySpan.textContent = '<?php esc_html_e( 'Buffer', 'opi-buffer' ); ?>';
+                    displaySpan.textContent = '<?php esc_html_e( 'Buffer', 'opi-buffer-queue' ); ?>';
                 }
 
                 // Submit the form to save.
@@ -118,11 +118,11 @@ class OPI_Buffer_Post_Status {
 
             var opt    = document.createElement( 'option' );
             opt.value  = 'buffer';
-            opt.text   = '<?php esc_html_e( 'Buffer', 'opi-buffer' ); ?>';
+            opt.text   = '<?php esc_html_e( 'Buffer', 'opi-buffer-queue' ); ?>';
             <?php if ( $selected ) : ?>
             opt.selected = true;
             document.getElementById( 'post-status-display' ).textContent =
-                '<?php esc_html_e( 'Buffer', 'opi-buffer' ); ?>';
+                '<?php esc_html_e( 'Buffer', 'opi-buffer-queue' ); ?>';
             <?php endif; ?>
             sel.appendChild( opt );
         } )();
@@ -148,7 +148,7 @@ class OPI_Buffer_Post_Status {
 
             var opt   = document.createElement( 'option' );
             opt.value = 'buffer';
-            opt.text  = '<?php esc_html_e( 'Buffer', 'opi-buffer' ); ?>';
+            opt.text  = '<?php esc_html_e( 'Buffer', 'opi-buffer-queue' ); ?>';
             sel.appendChild( opt );
         } )();
         </script>
@@ -160,7 +160,7 @@ class OPI_Buffer_Post_Status {
      */
     public static function display_state( array $post_states, \WP_Post $post ): array {
         if ( $post->post_status === 'buffer' ) {
-            $post_states['buffer'] = __( 'Buffer', 'opi-buffer' );
+            $post_states['buffer'] = __( 'Buffer', 'opi-buffer-queue' );
         }
         return $post_states;
     }

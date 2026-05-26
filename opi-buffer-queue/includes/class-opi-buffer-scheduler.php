@@ -10,7 +10,7 @@ class OPI_Buffer_Scheduler {
     const META_KEY      = '_opi_buffer_estimated_date';
 
     public static function init(): void {
-        OPI_Cron_Helper::register_interval( self::CRON_INTERVAL, 900, __( 'Every 15 Minutes', 'opi-buffer' ) );
+        OPI_Cron_Helper::register_interval( self::CRON_INTERVAL, 900, __( 'Every 15 Minutes', 'opi-buffer-queue' ) );
 
         add_action( self::CRON_HOOK,       [ __CLASS__, 'process_buffer' ] );
         add_action( 'opi_buffer_changed',  [ __CLASS__, 'recalculate_all_dates' ] );

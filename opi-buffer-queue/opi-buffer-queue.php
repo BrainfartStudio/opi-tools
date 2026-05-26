@@ -124,7 +124,7 @@ register_activation_hook( __FILE__, function() {
     }
 
     if ( class_exists( 'OPI_Cron_Helper' ) ) {
-        OPI_Cron_Helper::register_interval( 'opi_buffer_15min', 900, __( 'Every 15 Minutes', 'opi-buffer' ) );
+        OPI_Cron_Helper::register_interval( 'opi_buffer_15min', 900, __( 'Every 15 Minutes', 'opi-buffer-queue' ) );
         OPI_Buffer_Scheduler::activate();
     }
 

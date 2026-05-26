@@ -27,12 +27,12 @@ class OPI_Buffer_List_Table extends WP_List_Table {
         return [
             'cb'             => '<input type="checkbox" />',
             'handle'         => '',
-            'queue'          => __( 'Queue #', 'opi-buffer' ),
-            'title'          => __( 'Title', 'opi-buffer' ),
-            'categories'     => __( 'Categories', 'opi-buffer' ),
-            'tags'           => __( 'Tags', 'opi-buffer' ),
-            'estimated_date' => __( 'Estimated Publish', 'opi-buffer' ),
-            'actions'        => __( 'Actions', 'opi-buffer' ),
+            'queue'          => __( 'Queue #', 'opi-buffer-queue' ),
+            'title'          => __( 'Title', 'opi-buffer-queue' ),
+            'categories'     => __( 'Categories', 'opi-buffer-queue' ),
+            'tags'           => __( 'Tags', 'opi-buffer-queue' ),
+            'estimated_date' => __( 'Estimated Publish', 'opi-buffer-queue' ),
+            'actions'        => __( 'Actions', 'opi-buffer-queue' ),
         ];
     }
 
@@ -100,7 +100,7 @@ class OPI_Buffer_List_Table extends WP_List_Table {
         $ts = OPI_Buffer_Scheduler::get_estimated_date( $item->ID );
 
         if ( ! $ts ) {
-            return '<em>' . esc_html__( 'Calculating…', 'opi-buffer' ) . '</em>';
+            return '<em>' . esc_html__( 'Calculating…', 'opi-buffer-queue' ) . '</em>';
         }
 
         $formatted = date_i18n(
@@ -110,7 +110,7 @@ class OPI_Buffer_List_Table extends WP_List_Table {
 
         if ( $ts <= current_time( 'timestamp' ) ) {
             return '<span class="opi-status-badge opi-status-badge--error">'
-                . esc_html__( 'Ready to publish', 'opi-buffer' )
+                . esc_html__( 'Ready to publish', 'opi-buffer-queue' )
                 . '</span><br><small>' . esc_html( $formatted ) . '</small>';
         }
 
@@ -121,7 +121,7 @@ class OPI_Buffer_List_Table extends WP_List_Table {
         return sprintf(
             '<button type="button" class="button opi-buffer-remove" data-post-id="%d">%s</button>',
             $item->ID,
-            esc_html__( 'Remove from Buffer', 'opi-buffer' )
+            esc_html__( 'Remove from Buffer', 'opi-buffer-queue' )
         );
     }
 
@@ -135,7 +135,7 @@ class OPI_Buffer_List_Table extends WP_List_Table {
         ?>
         <div class="alignleft actions">
             <select name="filter_category">
-                <option value="0"><?php esc_html_e( 'All Categories', 'opi-buffer' ); ?></option>
+                <option value="0"><?php esc_html_e( 'All Categories', 'opi-buffer-queue' ); ?></option>
                 <?php foreach ( $categories as $cat ) : ?>
                     <option value="<?php echo $cat->term_id; ?>" <?php selected( $this->filter_category, $cat->term_id ); ?>>
                         <?php echo esc_html( $cat->name ); ?>
@@ -144,7 +144,7 @@ class OPI_Buffer_List_Table extends WP_List_Table {
             </select>
 
             <select name="filter_tag">
-                <option value="0"><?php esc_html_e( 'All Tags', 'opi-buffer' ); ?></option>
+                <option value="0"><?php esc_html_e( 'All Tags', 'opi-buffer-queue' ); ?></option>
                 <?php foreach ( $tags as $tag ) : ?>
                     <option value="<?php echo $tag->term_id; ?>" <?php selected( $this->filter_tag, $tag->term_id ); ?>>
                         <?php echo esc_html( $tag->name ); ?>
@@ -152,7 +152,7 @@ class OPI_Buffer_List_Table extends WP_List_Table {
                 <?php endforeach; ?>
             </select>
 
-            <input type="submit" name="filter_action" class="button" value="<?php esc_attr_e( 'Filter', 'opi-buffer' ); ?>">
+            <input type="submit" name="filter_action" class="button" value="<?php esc_attr_e( 'Filter', 'opi-buffer-queue' ); ?>">
         </div>
         <?php
     }
