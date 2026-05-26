@@ -71,7 +71,7 @@ class OPI_Admin {
     }
 
     public static function enqueue_assets( string $hook ): void {
-        if ( $hook !== 'opi_tools_page_opi-admin' ) {
+        if ( $hook !== 'opi-tools_page_opi-admin' ) {
             return;
         }
 
