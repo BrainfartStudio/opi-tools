@@ -20,8 +20,6 @@ class OPI_Tools {
 
         add_action( 'admin_menu',            [ __CLASS__, 'register_menu' ] );
         add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ] );
-
-        do_action( 'opi_tools_register_plugins' );
     }
 
     /**
