@@ -75,57 +75,8 @@ register_activation_hook( __FILE__, function() {
         ] );
     }
 
-    // Cron helper may not be loaded at activation time — locate Core relative
-    // to this plugin's directory rather than assuming a folder name.
-    if ( ! class_exists( 'OPI_Cron_Helper' ) ) {
-        $core_path = trailingslashit( dirname( plugin_dir_path( __FILE__ ), 2 ) )
-                     . 'opi-tools/includes/class-opi-cron-helper.php';
-
-        if ( ! file_exists( $core_path ) ) {
-            // Fallback: scan active plugins for OPI Tools Core bootstrap.
-            $active = get_option( 'active_plugins', [] );
-            foreach ( $active as $plugin_file ) {
-                if ( str_ends_with( $plugin_file, '/opi-core.php' ) ) {
-                    $candidate = WP_PLUGIN_DIR . '/' . dirname( $plugin_file )
-                                 . '/includes/class-opi-cron-helper.php';
-                    if ( file_exists( $candidate ) ) {
-                        $core_path = $candidate;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if ( file_exists( $core_path ) ) {
-            require_once $core_path;
-        }
-    }
-
-    // Load plugin classes needed during activation — they are not yet loaded
-    // at this point because plugins_loaded priority 5 hasn't fired yet.
-    if ( ! class_exists( 'OPI_Settings_Base' ) ) {
-        $base_path = trailingslashit( dirname( plugin_dir_path( __FILE__ ), 2 ) )
-                     . 'opi-tools/includes/class-opi-settings-base.php';
-        if ( file_exists( $base_path ) ) {
-            require_once $base_path;
-        }
-    }
-
-    if ( ! class_exists( 'OPI_Buffer_Settings' ) ) {
-        require_once OPI_BUFFER_PATH . 'includes/class-opi-buffer-settings.php';
-    }
-
-    if ( ! class_exists( 'OPI_Buffer_Manager' ) ) {
-        require_once OPI_BUFFER_PATH . 'includes/class-opi-buffer-manager.php';
-    }
-
-    if ( ! class_exists( 'OPI_Buffer_Scheduler' ) ) {
-        require_once OPI_BUFFER_PATH . 'includes/class-opi-buffer-scheduler.php';
-    }
-
-    if ( class_exists( 'OPI_Cron_Helper' ) ) {
-        OPI_Cron_Helper::register_interval( 'opi_buffer_15min', 900, __( 'Every 15 Minutes', 'opi-buffer-queue' ) );
-        OPI_Buffer_Scheduler::activate();
+    if ( ! wp_next_scheduled( 'opi_buffer_process' ) ) {
+        wp_schedule_event( time(), 'opi_buffer_15min', 'opi_buffer_process' );
     }
 
     flush_rewrite_rules();
