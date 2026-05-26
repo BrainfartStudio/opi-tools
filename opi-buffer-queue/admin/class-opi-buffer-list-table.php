@@ -108,7 +108,7 @@ class OPI_Buffer_List_Table extends WP_List_Table {
             $ts
         );
 
-        if ( $ts <= current_time( 'timestamp' ) ) {
+        if ( $ts <= time() ) {
             return '<span class="opi-status-badge opi-status-badge--error">'
                 . esc_html__( 'Ready to publish', 'opi-buffer-queue' )
                 . '</span><br><small>' . esc_html( $formatted ) . '</small>';
@@ -137,7 +137,7 @@ class OPI_Buffer_List_Table extends WP_List_Table {
             <select name="filter_category">
                 <option value="0"><?php esc_html_e( 'All Categories', 'opi-buffer-queue' ); ?></option>
                 <?php foreach ( $categories as $cat ) : ?>
-                    <option value="<?php echo $cat->term_id; ?>" <?php selected( $this->filter_category, $cat->term_id ); ?>>
+                    <option value="<?php echo absint( $cat->term_id ); ?>" <?php selected( $this->filter_category, $cat->term_id ); ?>>
                         <?php echo esc_html( $cat->name ); ?>
                     </option>
                 <?php endforeach; ?>
@@ -146,7 +146,7 @@ class OPI_Buffer_List_Table extends WP_List_Table {
             <select name="filter_tag">
                 <option value="0"><?php esc_html_e( 'All Tags', 'opi-buffer-queue' ); ?></option>
                 <?php foreach ( $tags as $tag ) : ?>
-                    <option value="<?php echo $tag->term_id; ?>" <?php selected( $this->filter_tag, $tag->term_id ); ?>>
+                    <option value="<?php echo absint( $tag->term_id ); ?>" <?php selected( $this->filter_tag, $tag->term_id ); ?>>
                         <?php echo esc_html( $tag->name ); ?>
                     </option>
                 <?php endforeach; ?>
