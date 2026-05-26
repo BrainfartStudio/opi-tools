@@ -82,8 +82,7 @@ class OPI_Discord {
         if ( empty( $posts ) ) return 0;
 
         foreach ( $posts as $post ) {
-            self::send( $post );
-            sleep( 2 );
+            OPI_Discord_Queue::enqueue( $post->ID );
         }
 
         return count( $posts );
