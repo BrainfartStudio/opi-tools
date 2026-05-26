@@ -32,7 +32,7 @@ if ( isset( $_GET['reset'] ) ) {
                 <label><?php _e( 'Width (px)', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <input type="number" min="100" max="400"
-                           name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_width]"
+                           name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[sidebar_width]"
                            value="<?php echo absint( $settings['sidebar_width'] ); ?>"
                            data-css-var="--opi-admin-sidebar-width"
                            data-css-unit="px"
@@ -45,7 +45,7 @@ if ( isset( $_GET['reset'] ) ) {
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
-                               name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_bg]"
+                               name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[sidebar_bg]"
                                value="<?php echo esc_attr( $settings['sidebar_bg'] ); ?>"
                                data-css-var="--opi-admin-sidebar-bg">
                         <input type="text" maxlength="7"
@@ -60,7 +60,7 @@ if ( isset( $_GET['reset'] ) ) {
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
-                               name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_text]"
+                               name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[sidebar_text]"
                                value="<?php echo esc_attr( $settings['sidebar_text'] ); ?>"
                                data-css-var="--opi-admin-sidebar-text">
                         <input type="text" maxlength="7"
@@ -75,7 +75,7 @@ if ( isset( $_GET['reset'] ) ) {
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
-                               name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_icon_color]"
+                               name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[sidebar_icon_color]"
                                value="<?php echo esc_attr( $settings['sidebar_icon_color'] ); ?>"
                                data-css-var="--opi-admin-sidebar-icon-color">
                         <input type="text" maxlength="7"
@@ -90,7 +90,7 @@ if ( isset( $_GET['reset'] ) ) {
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
-                               name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_highlight]"
+                               name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[sidebar_highlight]"
                                value="<?php echo esc_attr( $settings['sidebar_highlight'] ); ?>"
                                data-css-var="--opi-admin-sidebar-highlight">
                         <input type="text" maxlength="7"
@@ -105,7 +105,7 @@ if ( isset( $_GET['reset'] ) ) {
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
-                               name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_submenu_bg]"
+                               name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[sidebar_submenu_bg]"
                                value="<?php echo esc_attr( $settings['sidebar_submenu_bg'] ); ?>"
                                data-css-var="--opi-admin-sidebar-submenu-bg">
                         <input type="text" maxlength="7"
@@ -120,7 +120,7 @@ if ( isset( $_GET['reset'] ) ) {
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
-                               name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_open_bg]"
+                               name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[sidebar_open_bg]"
                                value="<?php echo esc_attr( $settings['sidebar_open_bg'] ); ?>"
                                data-css-var="--opi-admin-sidebar-open-bg">
                         <input type="text" maxlength="7"
@@ -133,7 +133,7 @@ if ( isset( $_GET['reset'] ) ) {
             <div class="opi-form-row">
                 <label><?php _e( 'Third-party Icon Style', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
-                    <select name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_icon_filter]"
+                    <select name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[sidebar_icon_filter]"
                             id="opiadmin-icon-filter">
                         <option value="light" <?php selected( $settings['sidebar_icon_filter'], 'light' ); ?>>
                             <?php _e( 'Light (white)', 'opi-admin-customizer' ); ?>
@@ -153,7 +153,7 @@ if ( isset( $_GET['reset'] ) ) {
                 <label><?php _e( 'Font Size (px)', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <input type="number" min="10" max="24"
-                           name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_font_size]"
+                           name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[sidebar_font_size]"
                            value="<?php echo absint( $settings['sidebar_font_size'] ); ?>"
                            data-css-var="--opi-admin-sidebar-font-size"
                            data-css-unit="px"
@@ -165,7 +165,7 @@ if ( isset( $_GET['reset'] ) ) {
                 <label><?php _e( 'Icon Size (px)', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <input type="number" min="10" max="32"
-                           name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[sidebar_icon_size]"
+                           name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[sidebar_icon_size]"
                            value="<?php echo absint( $settings['sidebar_icon_size'] ); ?>"
                            data-css-var="--opi-admin-sidebar-icon-size"
                            data-css-unit="px"
@@ -183,7 +183,7 @@ if ( isset( $_GET['reset'] ) ) {
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
-                               name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[topbar_bg]"
+                               name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[topbar_bg]"
                                value="<?php echo esc_attr( $settings['topbar_bg'] ); ?>"
                                data-css-var="--opi-admin-topbar-bg">
                         <input type="text" maxlength="7"
@@ -198,7 +198,7 @@ if ( isset( $_GET['reset'] ) ) {
                 <div class="opi-form-control">
                     <div class="opi-color-pair">
                         <input type="color"
-                               name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[topbar_text]"
+                               name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[topbar_text]"
                                value="<?php echo esc_attr( $settings['topbar_text'] ); ?>"
                                data-css-var="--opi-admin-topbar-text">
                         <input type="text" maxlength="7"
@@ -212,7 +212,7 @@ if ( isset( $_GET['reset'] ) ) {
                 <label><?php _e( 'Height (px)', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <input type="number" min="28" max="80"
-                           name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[topbar_height]"
+                           name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[topbar_height]"
                            value="<?php echo absint( $settings['topbar_height'] ); ?>"
                            data-css-var="--opi-admin-topbar-height"
                            data-css-unit="px"
@@ -224,7 +224,7 @@ if ( isset( $_GET['reset'] ) ) {
                 <label><?php _e( 'Font Size (px)', 'opi-admin-customizer' ); ?></label>
                 <div class="opi-form-control">
                     <input type="number" min="10" max="24"
-                           name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[topbar_font_size]"
+                           name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[topbar_font_size]"
                            value="<?php echo absint( $settings['topbar_font_size'] ); ?>"
                            data-css-var="--opi-admin-topbar-font-size"
                            data-css-unit="px"
@@ -254,7 +254,7 @@ if ( isset( $_GET['reset'] ) ) {
 
             <div class="opi-form-row">
                 <div class="opi-form-control" style="width:100%;">
-                    <textarea name="<?php echo OPI_Admin_Settings::OPTION_KEY; ?>[custom_css]"
+                    <textarea name="<?php echo esc_attr( OPI_Admin_Settings::OPTION_KEY ); ?>[custom_css]"
                               id="opiadmin-custom-css"
                               rows="10"
                               class="large-text code"
