@@ -25,7 +25,7 @@ function opi_buffer_check_core(): void {
 
     add_action( 'admin_notices', function() {
         echo '<div class="notice notice-error"><p>';
-        esc_html_e( 'OPI Buffer Queue requires OPI Tools Core to be installed and active.', 'opi-buffer' );
+        esc_html_e( 'OPI Buffer Queue requires OPI Tools Core to be installed and active.', 'opi-buffer-queue' );
         echo '</p></div>';
     } );
 }
