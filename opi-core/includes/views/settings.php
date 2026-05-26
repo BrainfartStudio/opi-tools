@@ -47,7 +47,7 @@ if ( isset( $_POST['opitools_save'] ) && check_admin_referer( 'opitools_settings
                     <div class="opi-form-control">
                         <div class="opi-color-pair">
                             <input type="color" id="opi-accent"
-                                   name="<?php echo OPI_Settings::OPTION_KEY; ?>[accent_color]"
+                                   name="<?php echo esc_attr( OPI_Settings::OPTION_KEY ); ?>[accent_color]"
                                    value="<?php echo esc_attr( $theme['accent_color'] ); ?>">
                             <input type="text"
                                    value="<?php echo esc_attr( $theme['accent_color'] ); ?>"
@@ -61,7 +61,7 @@ if ( isset( $_POST['opitools_save'] ) && check_admin_referer( 'opitools_settings
                     <div class="opi-form-control">
                         <div class="opi-color-pair">
                             <input type="color" id="opi-accent-text"
-                                   name="<?php echo OPI_Settings::OPTION_KEY; ?>[accent_text]"
+                                   name="<?php echo esc_attr( OPI_Settings::OPTION_KEY ); ?>[accent_text]"
                                    value="<?php echo esc_attr( $theme['accent_text'] ); ?>">
                             <input type="text"
                                    value="<?php echo esc_attr( $theme['accent_text'] ); ?>"
@@ -75,7 +75,7 @@ if ( isset( $_POST['opitools_save'] ) && check_admin_referer( 'opitools_settings
                     <div class="opi-form-control">
                         <div class="opi-color-pair">
                             <input type="color" id="opi-surface"
-                                   name="<?php echo OPI_Settings::OPTION_KEY; ?>[surface_color]"
+                                   name="<?php echo esc_attr( OPI_Settings::OPTION_KEY ); ?>[surface_color]"
                                    value="<?php echo esc_attr( $theme['surface_color'] ); ?>">
                             <input type="text"
                                    value="<?php echo esc_attr( $theme['surface_color'] ); ?>"
@@ -89,7 +89,7 @@ if ( isset( $_POST['opitools_save'] ) && check_admin_referer( 'opitools_settings
                     <div class="opi-form-control">
                         <div class="opi-color-pair">
                             <input type="color" id="opi-surface-text"
-                                   name="<?php echo OPI_Settings::OPTION_KEY; ?>[surface_text]"
+                                   name="<?php echo esc_attr( OPI_Settings::OPTION_KEY ); ?>[surface_text]"
                                    value="<?php echo esc_attr( $theme['surface_text'] ); ?>">
                             <input type="text"
                                    value="<?php echo esc_attr( $theme['surface_text'] ); ?>"
