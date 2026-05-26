@@ -66,7 +66,6 @@ class OPI_Login {
         $width    = absint( $s['form_width'] ) . 'px';
         $font     = esc_attr( $s['font_family'] ) ?: 'inherit';
 
-        // Build box-shadow value
         if ( $s['form_shadow'] ) {
             $shadow_color  = esc_attr( $s['form_shadow_color'] );
             $shadow_blur   = absint( $s['form_shadow_blur'] ) . 'px';
@@ -82,14 +81,23 @@ class OPI_Login {
             default  => '',
         };
 
-        $form_text = esc_attr( $s['form_text_color'] );
-        $link      = esc_attr( $s['link_color'] );
+        $bg_color      = esc_attr( $s['bg_color'] );
+        $form_bg_color = esc_attr( $s['form_bg_color'] );
+        $form_text     = esc_attr( $s['form_text_color'] );
+        $link          = esc_attr( $s['link_color'] );
+        $button_color  = esc_attr( $s['button_color'] );
+        $button_text   = esc_attr( $s['button_text'] );
+        $logo_bg_color = esc_attr( $s['logo_bg_color'] );
+
+        $bg_image_css = $bg_url
+            ? "background-image: url('" . esc_url( $bg_url ) . "'); background-size: cover; background-position: center;"
+            : '';
 
         $css = "
             body.login {
-                background-color: {$s['bg_color']};
+                background-color: {$bg_color};
                 font-family: {$font};
-                " . ( $bg_url ? "background-image: url('{$bg_url}'); background-size: cover; background-position: center;" : '' ) . "
+                {$bg_image_css}
             }
 
             body.login #login {
@@ -101,7 +109,7 @@ class OPI_Login {
             body.login #loginform,
             body.login #lostpasswordform,
             body.login #registerform {
-                background: {$s['form_bg_color']};
+                background: {$form_bg_color};
                 border-radius: {$radius};
                 box-shadow: {$shadow};
                 width: 100%;
@@ -134,9 +142,9 @@ class OPI_Login {
             }
 
             body.login .button-primary {
-                background: {$s['button_color']} !important;
-                border-color: {$s['button_color']} !important;
-                color: {$s['button_text']} !important;
+                background: {$button_color} !important;
+                border-color: {$button_color} !important;
+                color: {$button_text} !important;
             }
 
             body.login .button-primary:hover {
@@ -145,11 +153,12 @@ class OPI_Login {
         ";
 
         if ( $logo_url ) {
+            $logo_url_escaped = esc_url( $logo_url );
             $css .= "
             body.login h1 a {
-                background-image: url('{$logo_url}') !important;
+                background-image: url('{$logo_url_escaped}') !important;
                 background-size: contain !important;
-                background-color: {$s['logo_bg_color']};
+                background-color: {$logo_bg_color};
                 width: 100% !important;
                 height: 80px !important;
                 " . ( $logo_shape_radius ? "border-radius: {$logo_shape_radius};" : '' ) . "
@@ -176,7 +185,7 @@ class OPI_Login {
             }
         }
 
-        $css .= "\n" . $s['custom_css'];
+        $css .= "\n" . wp_strip_all_tags( $s['custom_css'] );
 
         wp_register_style( 'opilogin', false );
         wp_enqueue_style( 'opilogin' );
@@ -203,7 +212,8 @@ class OPI_Login {
 
     public static function header_text(): string {
         $s = OPI_Login_Settings::get();
-        return esc_html( $s['header_text'] ) ?: get_bloginfo( 'name' );
+        $text = $s['header_text'];
+        return $text !== '' ? esc_html( $text ) : esc_html( get_bloginfo( 'name' ) );
     }
 
     public static function render_page(): void {
