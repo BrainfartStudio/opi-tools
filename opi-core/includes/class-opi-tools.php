@@ -78,14 +78,14 @@ class OPI_Tools {
     /**
      * Enqueue shared CSS and JS on all OPI admin pages.
      *
-     * Submenus under 'opi-core' generate hook: 'opi-tools_page_{slug}'
-     * The OPI Tools top-level page generates hook: 'toplevel_page_opi-tools'
+     * Submenus under 'opi-core' generate hook: 'opi-core_page_{slug}'
+     * The OPI Tools top-level page generates hook: 'toplevel_page_opi-core'
      */
     public static function enqueue_assets( string $hook ): void {
-        $opi_pages = [ 'toplevel_page_opi-tools' ];
+        $opi_pages = [ 'toplevel_page_opi-core' ];
 
         foreach ( array_keys( self::$plugins ) as $slug ) {
-            $opi_pages[] = 'opi-tools_page_' . $slug;
+            $opi_pages[] = 'opi-core_page_' . $slug;
         }
 
         if ( ! in_array( $hook, $opi_pages, true ) ) {

@@ -72,7 +72,7 @@ $plugins = OPI_Tools::get_plugins();
 
     <h2><?php _e( 'OPI Settings', 'opi-core' ); ?></h2>
     <p>
-        <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-tools&view=settings' ) ); ?>" class="button">
+        <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-core&view=settings' ) ); ?>" class="button">
             <?php _e( 'Appearance & Settings', 'opi-core' ); ?>
         </a>
     </p>
