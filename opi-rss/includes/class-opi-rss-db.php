@@ -124,8 +124,8 @@ class OPI_RSS_DB {
         $feeds_table = $wpdb->prefix . 'opirss_feeds';
         $items_table = $wpdb->prefix . 'opirss_items';
 
-        return $wpdb->get_results( "
-            SELECT f.*,
+        return $wpdb->get_results( $wpdb->prepare(
+            "SELECT f.*,
                    i.title    AS latest_article,
                    i.link     AS latest_article_link,
                    i.pub_date AS latest_article_date
@@ -140,9 +140,10 @@ class OPI_RSS_DB {
                 )
                 GROUP BY feed_id
             ) i ON f.id = i.feed_id
-            WHERE f.status != " . self::STATUS_ACTIVE . "
-            ORDER BY f.name ASC
-        " );
+            WHERE f.status != %d
+            ORDER BY f.name ASC",
+            self::STATUS_ACTIVE
+        ) );
     }
 
     /**
@@ -240,7 +241,7 @@ class OPI_RSS_DB {
         global $wpdb;
         $wpdb->update( $wpdb->prefix . 'opirss_feeds', [
             'last_fetch' => current_time( 'mysql' ),
-            'next_fetch' => date( 'Y-m-d H:i:s', time() + 1800 ),
+            'next_fetch' => gmdate( 'Y-m-d H:i:s', time() + 1800 ),
         ], [ 'id' => $id ] );
     }
 
@@ -252,8 +253,8 @@ class OPI_RSS_DB {
         foreach ( $items as $item ) {
             $wpdb->insert( $table, [
                 'feed_id'  => $feed_id,
-                'title'    => $item['title'],
-                'link'     => $item['link'],
+                'title'    => sanitize_text_field( $item['title'] ),
+                'link'     => esc_url_raw( $item['link'] ),
                 'pub_date' => $item['pub_date'],
             ] );
         }
@@ -298,10 +299,10 @@ class OPI_RSS_DB {
      */
     public static function get_widget_counts(): object {
         global $wpdb;
-        $feeds_table = $wpdb->prefix . 'opirss_feeds';
-        $items_table = $wpdb->prefix . 'opirss_items';
-        $stale_cutoff = date( 'Y-m-d H:i:s', strtotime( '-48 hours' ) );
-        $today_start  = date( 'Y-m-d 00:00:00' );
+        $feeds_table  = $wpdb->prefix . 'opirss_feeds';
+        $items_table  = $wpdb->prefix . 'opirss_items';
+        $stale_cutoff = gmdate( 'Y-m-d H:i:s', time() - ( 48 * HOUR_IN_SECONDS ) );
+        $today_start  = gmdate( 'Y-m-d 00:00:00' );
 
         $active_count = (int) $wpdb->get_var( $wpdb->prepare(
             "SELECT COUNT(*) FROM $feeds_table WHERE status = %d", self::STATUS_ACTIVE
