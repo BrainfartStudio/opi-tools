@@ -23,7 +23,7 @@ class OPI_Discord_Settings extends OPI_Settings_Base {
         $clean = static::sanitize_base( $input );
 
         if ( ! empty( $clean['webhook_url'] ) ) {
-            $clean['webhook_url'] = OPI_Crypto::encrypt( $clean['webhook_url'] );
+            $clean['webhook_url'] = OPI_Crypto::encrypt( esc_url_raw( $clean['webhook_url'] ) );
         }
 
         return $clean;
