@@ -122,7 +122,7 @@ class OPI_Admin {
                 --opi-admin-sidebar-width:       <?php echo absint( $s['sidebar_width'] ); ?>px;
                 --opi-admin-sidebar-icon-size:   <?php echo absint( $s['sidebar_icon_size'] ); ?>px;
                 --opi-admin-sidebar-font-size:   <?php echo absint( $s['sidebar_font_size'] ); ?>px;
-                --opi-admin-sidebar-icon-filter: <?php echo $icon_filter; ?>;
+                --opi-admin-sidebar-icon-filter: <?php echo esc_attr( $icon_filter ); ?>;
                 --opi-admin-topbar-bg:           <?php echo esc_attr( $s['topbar_bg'] ); ?>;
                 --opi-admin-topbar-text:         <?php echo esc_attr( $s['topbar_text'] ); ?>;
                 --opi-admin-topbar-height:       <?php echo absint( $s['topbar_height'] ); ?>px;
