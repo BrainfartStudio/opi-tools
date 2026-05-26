@@ -136,15 +136,12 @@ class OPI_RSS {
                 $msg         = $result
                     ? __( 'Feed fetched successfully.', 'opi-rss' )
                     : __( 'Failed to fetch feed. Check the URL.', 'opi-rss' );
-                // On success the feed is now active — always land on the active list.
-                // On failure stay on whichever view triggered the retry.
                 $redirect_view = $result ? 'list' : $from_view;
                 self::redirect_with_notice( $redirect_view, $type, $msg );
                 break;
 
             case 'save_settings':
                 $input = $_POST['opirss_settings'] ?? [];
-                // Checkboxes are absent from POST when unchecked — normalize before sanitize.
                 $input['cron_inactive'] = ! empty( $input['cron_inactive'] );
                 OPI_RSS_Settings::update( OPI_RSS_Settings::sanitize( $input ) );
                 OPI_RSS_Cron::reschedule();
@@ -188,7 +185,7 @@ class OPI_RSS {
      * Format a datetime string as a human-readable time diff.
      */
     public static function time_diff( string $datetime ): string {
-        $now  = current_time( 'timestamp' );
+        $now  = time();
         $time = strtotime( $datetime );
         $diff = $now - $time;
 
