@@ -100,7 +100,7 @@ class OPI_Google_Fonts {
                style="margin-top:6px;<?php echo $is_custom ? '' : 'display:none;'; ?>">
 
         <p class="description">
-            <?php _e( 'Choose a font or enter a custom Google Font name.', 'opi-tools' ); ?>
+            <?php _e( 'Choose a font or enter a custom Google Font name.', 'opi-core' ); ?>
         </p>
 
         <script>

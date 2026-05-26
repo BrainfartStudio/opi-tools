@@ -57,7 +57,7 @@ class OPI_Tools {
             'OPI Tools',
             'OPI Tools',
             'manage_options',
-            'opi-tools',
+            'opi-core',
             [ __CLASS__, 'render_dashboard' ],
             'dashicons-admin-tools',
             30
@@ -65,7 +65,7 @@ class OPI_Tools {
 
         foreach ( self::$plugins as $slug => $plugin ) {
             add_submenu_page(
-                'opi-tools',
+                'opi-core',
                 $plugin['label'],
                 $plugin['label'],
                 $plugin['capability'],
@@ -78,7 +78,7 @@ class OPI_Tools {
     /**
      * Enqueue shared CSS and JS on all OPI admin pages.
      *
-     * Submenus under 'opi-tools' generate hook: 'opi-tools_page_{slug}'
+     * Submenus under 'opi-core' generate hook: 'opi-tools_page_{slug}'
      * The OPI Tools top-level page generates hook: 'toplevel_page_opi-tools'
      */
     public static function enqueue_assets( string $hook ): void {

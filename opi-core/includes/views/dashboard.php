@@ -6,7 +6,7 @@ defined( 'ABSPATH' ) || exit;
 $plugins = OPI_Tools::get_plugins();
 ?>
 <div class="wrap">
-    <h1><?php _e( 'OPI Tools', 'opi-tools' ); ?></h1>
+    <h1><?php _e( 'OPI Tools', 'opi-core' ); ?></h1>
 
     <?php
     // Collect and display any health alerts first.
@@ -23,24 +23,24 @@ $plugins = OPI_Tools::get_plugins();
     }
 
     if ( ! empty( $alerts ) ) : ?>
-        <h2><?php _e( 'Health Alerts', 'opi-tools' ); ?></h2>
+        <h2><?php _e( 'Health Alerts', 'opi-core' ); ?></h2>
         <?php foreach ( $alerts as $alert ) : ?>
             <div class="opi-health-alert opi-health-alert--<?php echo esc_attr( $alert['severity'] ); ?>">
                 <strong><?php echo esc_html( $alert['label'] ); ?>:</strong>
                 <?php echo esc_html( $alert['message'] ?? '' ); ?>
                 <?php if ( ! empty( $alert['action_url'] ) ) : ?>
                     <a href="<?php echo esc_url( $alert['action_url'] ); ?>" class="button button-small opi-health-action">
-                        <?php _e( 'Fix this', 'opi-tools' ); ?>
+                        <?php _e( 'Fix this', 'opi-core' ); ?>
                     </a>
                 <?php endif; ?>
             </div>
         <?php endforeach; ?>
     <?php endif; ?>
 
-    <h2><?php _e( 'Registered Plugins', 'opi-tools' ); ?></h2>
+    <h2><?php _e( 'Registered Plugins', 'opi-core' ); ?></h2>
 
     <?php if ( empty( $plugins ) ) : ?>
-        <p><?php _e( 'No sub-plugins registered yet.', 'opi-tools' ); ?></p>
+        <p><?php _e( 'No sub-plugins registered yet.', 'opi-core' ); ?></p>
     <?php else : ?>
         <div class="opi-dashboard-grid">
             <?php foreach ( $plugins as $slug => $plugin ) :
@@ -62,7 +62,7 @@ $plugins = OPI_Tools::get_plugins();
                     <?php endif; ?>
                     <p style="margin:10px 0 0;">
                         <a href="<?php echo esc_url( admin_url( 'admin.php?page=' . $slug ) ); ?>" class="button button-small">
-                            <?php _e( 'Manage', 'opi-tools' ); ?>
+                            <?php _e( 'Manage', 'opi-core' ); ?>
                         </a>
                     </p>
                 </div>
@@ -70,10 +70,10 @@ $plugins = OPI_Tools::get_plugins();
         </div>
     <?php endif; ?>
 
-    <h2><?php _e( 'OPI Settings', 'opi-tools' ); ?></h2>
+    <h2><?php _e( 'OPI Settings', 'opi-core' ); ?></h2>
     <p>
         <a href="<?php echo esc_url( admin_url( 'admin.php?page=opi-tools&view=settings' ) ); ?>" class="button">
-            <?php _e( 'Appearance & Settings', 'opi-tools' ); ?>
+            <?php _e( 'Appearance & Settings', 'opi-core' ); ?>
         </a>
     </p>
 </div>

@@ -7,7 +7,7 @@ $view = $_GET['view'] ?? 'settings';
 
 // Only one tab for now; reserved for future shared settings tabs.
 $tabs = [
-    'settings' => __( 'Appearance', 'opi-tools' ),
+    'settings' => __( 'Appearance', 'opi-core' ),
 ];
 
 $theme   = OPI_Settings::get();
@@ -17,11 +17,11 @@ if ( isset( $_POST['opitools_save'] ) && check_admin_referer( 'opitools_settings
     $saved   = OPI_Settings::sanitize( $_POST[ OPI_Settings::OPTION_KEY ] ?? [] );
     OPI_Settings::update( $saved );
     $theme   = OPI_Settings::get();
-    $message = OPI_Tools::notice( 'success', __( 'Settings saved.', 'opi-tools' ) );
+    $message = OPI_Tools::notice( 'success', __( 'Settings saved.', 'opi-core' ) );
 }
 ?>
 <div class="wrap">
-    <h1><?php _e( 'OPI Settings', 'opi-tools' ); ?></h1>
+    <h1><?php _e( 'OPI Settings', 'opi-core' ); ?></h1>
 
     <?php echo $message; ?>
 
@@ -40,10 +40,10 @@ if ( isset( $_POST['opitools_save'] ) && check_admin_referer( 'opitools_settings
             <?php wp_nonce_field( 'opitools_settings_action' ); ?>
 
             <div class="opi-card">
-                <h2 class="opi-section-header"><?php _e( 'Colors', 'opi-tools' ); ?></h2>
+                <h2 class="opi-section-header"><?php _e( 'Colors', 'opi-core' ); ?></h2>
 
                 <div class="opi-form-row">
-                    <label for="opi-accent"><?php _e( 'Accent Color', 'opi-tools' ); ?></label>
+                    <label for="opi-accent"><?php _e( 'Accent Color', 'opi-core' ); ?></label>
                     <div class="opi-form-control">
                         <div class="opi-color-pair">
                             <input type="color" id="opi-accent"
@@ -57,7 +57,7 @@ if ( isset( $_POST['opitools_save'] ) && check_admin_referer( 'opitools_settings
                 </div>
 
                 <div class="opi-form-row">
-                    <label for="opi-accent-text"><?php _e( 'Accent Text Color', 'opi-tools' ); ?></label>
+                    <label for="opi-accent-text"><?php _e( 'Accent Text Color', 'opi-core' ); ?></label>
                     <div class="opi-form-control">
                         <div class="opi-color-pair">
                             <input type="color" id="opi-accent-text"
@@ -71,7 +71,7 @@ if ( isset( $_POST['opitools_save'] ) && check_admin_referer( 'opitools_settings
                 </div>
 
                 <div class="opi-form-row">
-                    <label for="opi-surface"><?php _e( 'Surface Color', 'opi-tools' ); ?></label>
+                    <label for="opi-surface"><?php _e( 'Surface Color', 'opi-core' ); ?></label>
                     <div class="opi-form-control">
                         <div class="opi-color-pair">
                             <input type="color" id="opi-surface"
@@ -85,7 +85,7 @@ if ( isset( $_POST['opitools_save'] ) && check_admin_referer( 'opitools_settings
                 </div>
 
                 <div class="opi-form-row">
-                    <label for="opi-surface-text"><?php _e( 'Surface Text Color', 'opi-tools' ); ?></label>
+                    <label for="opi-surface-text"><?php _e( 'Surface Text Color', 'opi-core' ); ?></label>
                     <div class="opi-form-control">
                         <div class="opi-color-pair">
                             <input type="color" id="opi-surface-text"
@@ -100,10 +100,10 @@ if ( isset( $_POST['opitools_save'] ) && check_admin_referer( 'opitools_settings
             </div>
 
             <div class="opi-card">
-                <h2 class="opi-section-header"><?php _e( 'Typography', 'opi-tools' ); ?></h2>
+                <h2 class="opi-section-header"><?php _e( 'Typography', 'opi-core' ); ?></h2>
 
                 <div class="opi-form-row">
-                    <label><?php _e( 'Font Family', 'opi-tools' ); ?></label>
+                    <label><?php _e( 'Font Family', 'opi-core' ); ?></label>
                     <div class="opi-form-control">
                         <?php OPI_Google_Fonts::render_selector(
                             OPI_Settings::OPTION_KEY . '[font_family]',
@@ -113,7 +113,7 @@ if ( isset( $_POST['opitools_save'] ) && check_admin_referer( 'opitools_settings
                 </div>
             </div>
 
-            <?php submit_button( __( 'Save Settings', 'opi-tools' ), 'primary', 'opitools_save' ); ?>
+            <?php submit_button( __( 'Save Settings', 'opi-core' ), 'primary', 'opitools_save' ); ?>
         </form>
 
     <?php endif; ?>
