@@ -13,10 +13,12 @@ if ( isset( $_POST['opi_discord_test'] ) && check_admin_referer( 'opi_discord_ac
         $result  = OPI_Discord::send( $posts[0] );
         $message = OPI_Tools::notice(
             $result ? 'success' : 'error',
-            $result ? 'Sent successfully.' : 'Send failed. Check your webhook URL.'
+            $result
+                ? __( 'Sent successfully.', 'opi-discord' )
+                : __( 'Send failed. Check your webhook URL.', 'opi-discord' )
         );
     } else {
-        $message = OPI_Tools::notice( 'warning', 'No published posts found.' );
+        $message = OPI_Tools::notice( 'warning', __( 'No published posts found.', 'opi-discord' ) );
     }
 }
 
@@ -26,8 +28,9 @@ if ( isset( $_POST['opi_discord_bulk'] ) && check_admin_referer( 'opi_discord_ac
     $message = OPI_Tools::notice(
         $queued > 0 ? 'success' : 'warning',
         $queued > 0
-            ? 'Queued ' . $queued . ' posts to send. They will post every 2 seconds.'
-            : 'No published posts found to queue.'
+            /* translators: %d: number of posts queued */
+            ? sprintf( __( 'Queued %d posts to send. They will post every 2 seconds.', 'opi-discord' ), $queued )
+            : __( 'No published posts found to queue.', 'opi-discord' )
     );
 }
 
@@ -36,7 +39,7 @@ if ( isset( $_POST['opi_discord_save'] ) && check_admin_referer( 'opi_discord_ac
     $saved   = OPI_Discord_Settings::sanitize( $_POST['opidiscord_settings'] ?? [] );
     OPI_Discord_Settings::update( $saved );
     $settings = OPI_Discord_Settings::get();
-    $message  = OPI_Tools::notice( 'success', 'Settings saved.' );
+    $message  = OPI_Tools::notice( 'success', __( 'Settings saved.', 'opi-discord' ) );
 }
 
 $webhook_url = OPI_Discord_Settings::get_webhook_url();
