@@ -8,7 +8,6 @@ class OPI_Settings extends OPI_Settings_Base {
     const OPTION_KEY = 'opitools_theme';
 
     public static function init(): void {
-        add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
         add_action( 'admin_head', [ __CLASS__, 'output_css_vars' ] );
     }
 
@@ -24,14 +23,6 @@ class OPI_Settings extends OPI_Settings_Base {
             'surface_text'  => '#1d2327',
             'font_family'   => 'inherit',
         ];
-    }
-
-    public static function register_settings(): void {
-        register_setting(
-            'opitools_theme_group',
-            self::OPTION_KEY,
-            [ 'sanitize_callback' => [ __CLASS__, 'sanitize' ] ]
-        );
     }
 
     public static function output_css_vars(): void {
