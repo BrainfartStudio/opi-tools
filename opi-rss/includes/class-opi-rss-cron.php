@@ -64,7 +64,7 @@ class OPI_RSS_Cron {
         global $wpdb;
         $feeds_table = $wpdb->prefix . 'opirss_feeds';
         $items_table = $wpdb->prefix . 'opirss_items';
-        $cutoff      = date( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+        $cutoff      = gmdate( 'Y-m-d H:i:s', time() - ( $days * DAY_IN_SECONDS ) );
 
         $stale_ids = $wpdb->get_col( $wpdb->prepare(
             "SELECT f.id
@@ -108,7 +108,7 @@ class OPI_RSS_Cron {
             $items[] = [
                 'title'    => $item->get_title(),
                 'link'     => $item->get_permalink(),
-                'pub_date' => date( 'Y-m-d H:i:s', strtotime( $item->get_date() ) ),
+                'pub_date' => gmdate( 'Y-m-d H:i:s', strtotime( $item->get_date() ) ),
             ];
         }
 
