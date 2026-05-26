@@ -56,7 +56,7 @@ class OPI_Buffer_Scheduler {
             'order'          => 'DESC',
         ] );
 
-        return ! empty( $posts ) ? (int) strtotime( $posts[0]->post_date ) : current_time( 'timestamp' );
+        return ! empty( $posts ) ? (int) strtotime( $posts[0]->post_date ) : time();
     }
 
     public static function get_scheduled_post_timestamps(): array {
@@ -109,7 +109,7 @@ class OPI_Buffer_Scheduler {
             }
 
             // Apply configured publish time.
-            $next_date = strtotime( date( 'Y-m-d', $next_date ) . " {$hour}:{$minute}:00" );
+            $next_date = strtotime( wp_date( 'Y-m-d', $next_date ) . " {$hour}:{$minute}:00" );
 
             $calculated[ $post->ID ] = $next_date;
             $last_anchor             = $next_date;
@@ -149,7 +149,7 @@ class OPI_Buffer_Scheduler {
         $first    = $buffer_posts[0];
         $pub_time = $calculated[ $first->ID ] ?? false;
 
-        if ( $pub_time && $pub_time <= current_time( 'timestamp' ) ) {
+        if ( $pub_time && $pub_time <= time() ) {
             wp_update_post( [
                 'ID'            => $first->ID,
                 'post_status'   => 'publish',
