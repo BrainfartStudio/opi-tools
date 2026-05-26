@@ -81,11 +81,10 @@ class OPI_Discord {
 
         if ( empty( $posts ) ) return 0;
 
-        foreach ( $posts as $post ) {
-            OPI_Discord_Queue::enqueue( $post->ID );
-        }
+        $post_ids = array_map( fn( $p ) => $p->ID, $posts );
+        OPI_Discord_Queue::enqueue( $post_ids );
 
-        return count( $posts );
+        return count( $post_ids );
     }
 
     public static function get_widget_data(): array {
