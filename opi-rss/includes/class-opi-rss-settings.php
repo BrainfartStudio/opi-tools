@@ -3,9 +3,13 @@
 
 defined( 'ABSPATH' ) || exit;
 
-class OPI_RSS_Settings {
+class OPI_RSS_Settings extends OPI_Settings_Base {
 
     const OPTION_KEY = 'opirss_settings';
+
+    protected static function get_option_key(): string {
+        return self::OPTION_KEY;
+    }
 
     public static function get_defaults(): array {
         return [
@@ -16,26 +20,8 @@ class OPI_RSS_Settings {
         ];
     }
 
-    public static function get(): array {
-        return wp_parse_args(
-            get_option( self::OPTION_KEY, [] ),
-            self::get_defaults()
-        );
-    }
-
-    public static function update( array $settings ): bool {
-        return update_option( self::OPTION_KEY, $settings );
-    }
-
     public static function sanitize( array $input ): array {
-        $defaults = self::get_defaults();
-
-        $clean = [
-            'default_item_limit'   => absint( $input['default_item_limit']   ?? $defaults['default_item_limit'] ),
-            'auto_deactivate_days' => absint( $input['auto_deactivate_days']  ?? $defaults['auto_deactivate_days'] ),
-            'cron_inactive'        => (bool) ( $input['cron_inactive']        ?? false ),
-            'cron_interval'        => sanitize_key( $input['cron_interval']   ?? $defaults['cron_interval'] ),
-        ];
+        $clean = static::sanitize_base( $input );
 
         $valid_intervals = array_keys( self::get_interval_options() );
         if ( ! in_array( $clean['cron_interval'], $valid_intervals, true ) ) {
