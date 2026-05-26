@@ -25,9 +25,3 @@ add_action( 'plugins_loaded', function() {
 add_action( 'plugins_loaded', function() {
     do_action( 'opi_tools_register_plugins' );
 }, 20 );
-
-// Trigger WP-Cron on every front-end and admin page load to maximize
-// scheduling accuracy without requiring server-level cron access.
-add_action( 'init', function() {
-    spawn_cron();
-} );
