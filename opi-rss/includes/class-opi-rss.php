@@ -6,10 +6,10 @@ defined( 'ABSPATH' ) || exit;
 class OPI_RSS {
 
     public static function init(): void {
-        require_once OPIRSS_PATH . 'includes/class-opi-rss-db.php';
-        require_once OPIRSS_PATH . 'includes/class-opi-rss-settings.php';
-        require_once OPIRSS_PATH . 'includes/class-opi-rss-cron.php';
-        require_once OPIRSS_PATH . 'includes/blocks.php';
+        require_once OPI_RSS_PATH . 'includes/class-opi-rss-db.php';
+        require_once OPI_RSS_PATH . 'includes/class-opi-rss-settings.php';
+        require_once OPI_RSS_PATH . 'includes/class-opi-rss-cron.php';
+        require_once OPI_RSS_PATH . 'includes/blocks.php';
 
         OPI_RSS_Cron::init();
 
@@ -21,7 +21,7 @@ class OPI_RSS {
         OPI_Tools::register_plugin(
             'opi-rss',
             __( 'RSS Aggregator', 'opi-rss' ),
-            OPIRSS_VERSION,
+            OPI_RSS_VERSION,
             [ __CLASS__, 'render_page' ],
             'manage_options',
             [ __CLASS__, 'get_widget_data' ],
@@ -45,20 +45,20 @@ class OPI_RSS {
 
         switch ( $view ) {
             case 'inactive':
-                require_once OPIRSS_PATH . 'includes/views/feed-inactive.php';
+                require_once OPI_RSS_PATH . 'includes/views/feed-inactive.php';
                 break;
             case 'error':
-                require_once OPIRSS_PATH . 'includes/views/feed-error.php';
+                require_once OPI_RSS_PATH . 'includes/views/feed-error.php';
                 break;
             case 'settings':
-                require_once OPIRSS_PATH . 'includes/views/feed-settings.php';
+                require_once OPI_RSS_PATH . 'includes/views/feed-settings.php';
                 break;
             case 'add':
             case 'edit':
-                require_once OPIRSS_PATH . 'includes/views/feed-form.php';
+                require_once OPI_RSS_PATH . 'includes/views/feed-form.php';
                 break;
             default:
-                require_once OPIRSS_PATH . 'includes/views/feed-list.php';
+                require_once OPI_RSS_PATH . 'includes/views/feed-list.php';
                 break;
         }
     }

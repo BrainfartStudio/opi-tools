@@ -9,7 +9,7 @@ class OPI_Discord {
         add_action( 'opi_tools_register_plugins', [ __CLASS__, 'register_with_core' ] );
         add_action( 'transition_post_status',     [ __CLASS__, 'on_publish' ], 10, 3 );
 
-        require_once OPIDISCORD_PATH . 'includes/class-opi-discord-queue.php';
+        require_once OPI_DISCORD_PATH . 'includes/class-opi-discord-queue.php';
         OPI_Discord_Queue::init();
     }
 
@@ -17,7 +17,7 @@ class OPI_Discord {
         OPI_Tools::register_plugin(
             'opi-discord',
             'Discord',
-            OPIDISCORD_VERSION,
+            OPI_DISCORD_VERSION,
             [ __CLASS__, 'render_page' ],
             'manage_options',
             [ __CLASS__, 'get_widget_data' ],
@@ -112,6 +112,6 @@ class OPI_Discord {
     }
 
     public static function render_page(): void {
-        require_once OPIDISCORD_PATH . 'includes/views/settings-page.php';
+        require_once OPI_DISCORD_PATH . 'includes/views/settings-page.php';
     }
 }

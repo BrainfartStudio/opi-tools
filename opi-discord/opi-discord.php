@@ -11,12 +11,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'OPIDISCORD_VERSION', '1.0.0' );
-define( 'OPIDISCORD_PATH', plugin_dir_path( __FILE__ ) );
-define( 'OPIDISCORD_URL', plugin_dir_url( __FILE__ ) );
+define( 'OPI_DISCORD_VERSION', '1.0.0' );
+define( 'OPI_DISCORD_PATH', plugin_dir_path( __FILE__ ) );
+define( 'OPI_DISCORD_URL', plugin_dir_url( __FILE__ ) );
 
 add_action( 'plugins_loaded', function() {
-    require_once OPIDISCORD_PATH . 'includes/class-opi-discord-settings.php';
-    require_once OPIDISCORD_PATH . 'includes/class-opi-discord.php';
+    require_once OPI_DISCORD_PATH . 'includes/class-opi-discord-settings.php';
+    require_once OPI_DISCORD_PATH . 'includes/class-opi-discord.php';
     OPI_Discord::init();
 }, 5 );

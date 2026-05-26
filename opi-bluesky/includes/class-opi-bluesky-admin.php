@@ -21,9 +21,9 @@ class OPI_Bluesky_Admin {
 
         wp_enqueue_script(
             'opibluesky-admin',
-            OPIBLUESKY_URL . 'assets/js/admin.js',
+            OPI_BLUESKY_URL . 'assets/js/admin.js',
             [ 'jquery' ],
-            OPIBLUESKY_VERSION,
+            OPI_BLUESKY_VERSION,
             true
         );
 
@@ -34,9 +34,9 @@ class OPI_Bluesky_Admin {
 
         wp_enqueue_style(
             'opibluesky-admin',
-            OPIBLUESKY_URL . 'assets/css/admin.css',
+            OPI_BLUESKY_URL . 'assets/css/admin.css',
             [],
-            OPIBLUESKY_VERSION
+            OPI_BLUESKY_VERSION
         );
     }
 

@@ -6,7 +6,7 @@ defined( 'ABSPATH' ) || exit;
 class OPI_Admin {
 
     public static function init(): void {
-        require_once OPIADMIN_PATH . 'includes/class-opi-admin-settings.php';
+        require_once OPI_ADMIN_PATH . 'includes/class-opi-admin-settings.php';
 
         add_action( 'admin_head',                  [ __CLASS__, 'output_css' ] );
         add_action( 'admin_enqueue_scripts',       [ __CLASS__, 'enqueue_assets' ] );
@@ -19,7 +19,7 @@ class OPI_Admin {
         OPI_Tools::register_plugin(
             'opi-admin',
             'Admin Customizer',
-            OPIADMIN_VERSION,
+            OPI_ADMIN_VERSION,
             [ __CLASS__, 'render_page' ],
             'manage_options',
             [ __CLASS__, 'widget_data' ],
@@ -28,7 +28,7 @@ class OPI_Admin {
     }
 
     public static function render_page(): void {
-        require_once OPIADMIN_PATH . 'includes/views/settings-page.php';
+        require_once OPI_ADMIN_PATH . 'includes/views/settings-page.php';
     }
 
     /**
@@ -77,9 +77,9 @@ class OPI_Admin {
 
         wp_enqueue_script(
             'opi-admin-preview',
-            OPIADMIN_URL . 'assets/js/opi-admin-preview.js',
+            OPI_ADMIN_URL . 'assets/js/opi-admin-preview.js',
             [ 'opi-admin' ],
-            OPIADMIN_VERSION,
+            OPI_ADMIN_VERSION,
             true
         );
     }

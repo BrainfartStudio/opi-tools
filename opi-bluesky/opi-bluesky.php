@@ -11,12 +11,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'OPIBLUESKY_VERSION', '1.0.0' );
-define( 'OPIBLUESKY_PATH',    plugin_dir_path( __FILE__ ) );
-define( 'OPIBLUESKY_URL',     plugin_dir_url( __FILE__ ) );
+define( 'OPI_BLUESKY_VERSION', '1.0.0' );
+define( 'OPI_BLUESKY_PATH',    plugin_dir_path( __FILE__ ) );
+define( 'OPI_BLUESKY_URL',     plugin_dir_url( __FILE__ ) );
 
 add_action( 'plugins_loaded', function() {
-    require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky.php';
+    require_once OPI_BLUESKY_PATH . 'includes/class-opi-bluesky.php';
     OPI_Bluesky::init();
 }, 5 );
 

@@ -8,9 +8,9 @@ add_action( 'init', 'opirss_register_blocks' );
 function opirss_register_blocks(): void {
     wp_register_script(
         'opirss-recent-items-editor',
-        OPIRSS_URL . 'assets/blocks/recent-items-editor.js',
+        OPI_RSS_URL . 'assets/blocks/recent-items-editor.js',
         [ 'wp-blocks', 'wp-element', 'wp-components', 'wp-block-editor' ],
-        OPIRSS_VERSION,
+        OPI_RSS_VERSION,
         true
     );
 
@@ -27,9 +27,9 @@ function opirss_register_blocks(): void {
 
     wp_register_script(
         'opirss-active-sources-editor',
-        OPIRSS_URL . 'assets/blocks/active-sources-editor.js',
+        OPI_RSS_URL . 'assets/blocks/active-sources-editor.js',
         [ 'wp-blocks', 'wp-element', 'wp-block-editor' ],
-        OPIRSS_VERSION,
+        OPI_RSS_VERSION,
         true
     );
 
@@ -45,9 +45,9 @@ function opirss_render_recent_items( array $attributes ): string {
 
     wp_enqueue_script(
         'opirss-recent-items',
-        OPIRSS_URL . 'assets/recent-items.js',
+        OPI_RSS_URL . 'assets/recent-items.js',
         [],
-        OPIRSS_VERSION,
+        OPI_RSS_VERSION,
         true
     );
 
@@ -88,9 +88,9 @@ function opirss_render_active_sources( array $attributes ): string {
 
     wp_enqueue_script(
         'opirss-active-sources',
-        OPIRSS_URL . 'assets/active-sources.js',
+        OPI_RSS_URL . 'assets/active-sources.js',
         [],
-        OPIRSS_VERSION,
+        OPI_RSS_VERSION,
         true
     );
 

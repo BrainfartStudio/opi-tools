@@ -11,21 +11,21 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'OPIRSS_VERSION', '1.0.0' );
-define( 'OPIRSS_PATH', plugin_dir_path( __FILE__ ) );
-define( 'OPIRSS_URL', plugin_dir_url( __FILE__ ) );
+define( 'OPI_RSS_VERSION', '1.0.0' );
+define( 'OPI_RSS_PATH', plugin_dir_path( __FILE__ ) );
+define( 'OPI_RSS_URL', plugin_dir_url( __FILE__ ) );
 
 register_activation_hook( __FILE__, 'opirss_activate' );
 
 function opirss_activate(): void {
-    require_once OPIRSS_PATH . 'includes/class-opi-rss-db.php';
+    require_once OPI_RSS_PATH . 'includes/class-opi-rss-db.php';
     OPI_RSS_DB::create_tables();
 }
 
 register_deactivation_hook( __FILE__, 'opirss_deactivate' );
 
 function opirss_deactivate(): void {
-    require_once OPIRSS_PATH . 'includes/class-opi-rss.php';
+    require_once OPI_RSS_PATH . 'includes/class-opi-rss.php';
     OPI_RSS::deactivate();
 }
 
@@ -37,7 +37,7 @@ function opirss_uninstall(): void {
 }
 
 add_action( 'plugins_loaded', function() {
-    require_once OPIRSS_PATH . 'includes/class-opi-rss-db.php';
-    require_once OPIRSS_PATH . 'includes/class-opi-rss.php';
+    require_once OPI_RSS_PATH . 'includes/class-opi-rss-db.php';
+    require_once OPI_RSS_PATH . 'includes/class-opi-rss.php';
     OPI_RSS::init();
 }, 5 );

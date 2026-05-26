@@ -6,7 +6,7 @@ defined( 'ABSPATH' ) || exit;
 class OPI_Login {
 
     public static function init(): void {
-        require_once OPILOGIN_PATH . 'includes/class-opi-login-settings.php';
+        require_once OPI_LOGIN_PATH . 'includes/class-opi-login-settings.php';
 
         add_action( 'admin_enqueue_scripts',      [ __CLASS__, 'enqueue_admin_scripts' ] );
         add_action( 'opi_tools_register_plugins', [ __CLASS__, 'register_with_core' ] );
@@ -20,7 +20,7 @@ class OPI_Login {
         OPI_Tools::register_plugin(
             'opi-login',
             'Login Customizer',
-            OPILOGIN_VERSION,
+            OPI_LOGIN_VERSION,
             [ __CLASS__, 'render_page' ],
             'manage_options',
             [ __CLASS__, 'widget' ],
@@ -207,7 +207,7 @@ class OPI_Login {
     }
 
     public static function render_page(): void {
-        require_once OPILOGIN_PATH . 'includes/views/settings-page.php';
+        require_once OPI_LOGIN_PATH . 'includes/views/settings-page.php';
     }
 
     public static function enqueue_admin_scripts( string $hook ): void {

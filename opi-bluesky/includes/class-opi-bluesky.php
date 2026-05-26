@@ -6,15 +6,15 @@ defined( 'ABSPATH' ) || exit;
 class OPI_Bluesky {
 
     public static function init(): void {
-        require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-settings.php';
-        require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-auth.php';
-        require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-api.php';
-        require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-auto-post.php';
-        require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-post-type.php';
-        require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-category-scheduler.php';
-        require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-scheduler.php';
-        require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-list-table.php';
-        require_once OPIBLUESKY_PATH . 'includes/class-opi-bluesky-admin.php';
+        require_once OPI_BLUESKY_PATH . 'includes/class-opi-bluesky-settings.php';
+        require_once OPI_BLUESKY_PATH . 'includes/class-opi-bluesky-auth.php';
+        require_once OPI_BLUESKY_PATH . 'includes/class-opi-bluesky-api.php';
+        require_once OPI_BLUESKY_PATH . 'includes/class-opi-bluesky-auto-post.php';
+        require_once OPI_BLUESKY_PATH . 'includes/class-opi-bluesky-post-type.php';
+        require_once OPI_BLUESKY_PATH . 'includes/class-opi-bluesky-category-scheduler.php';
+        require_once OPI_BLUESKY_PATH . 'includes/class-opi-bluesky-scheduler.php';
+        require_once OPI_BLUESKY_PATH . 'includes/class-opi-bluesky-list-table.php';
+        require_once OPI_BLUESKY_PATH . 'includes/class-opi-bluesky-admin.php';
 
         OPI_Bluesky_Settings::init();
         OPI_Bluesky_Post_Type::init();
@@ -40,7 +40,7 @@ class OPI_Bluesky {
         OPI_Tools::register_plugin(
             'opi-bluesky',
             'Bluesky',
-            OPIBLUESKY_VERSION,
+            OPI_BLUESKY_VERSION,
             [ __CLASS__, 'render_page' ],
             'manage_options',
             [ __CLASS__, 'widget_data' ],
@@ -147,13 +147,13 @@ class OPI_Bluesky {
 
         switch ( $view ) {
             case 'settings':
-                require_once OPIBLUESKY_PATH . 'includes/views/settings-page.php';
+                require_once OPI_BLUESKY_PATH . 'includes/views/settings-page.php';
                 break;
             case 'categories':
-                require_once OPIBLUESKY_PATH . 'includes/views/categories.php';
+                require_once OPI_BLUESKY_PATH . 'includes/views/categories.php';
                 break;
             default:
-                require_once OPIBLUESKY_PATH . 'includes/views/scheduled-posts.php';
+                require_once OPI_BLUESKY_PATH . 'includes/views/scheduled-posts.php';
                 break;
         }
     }

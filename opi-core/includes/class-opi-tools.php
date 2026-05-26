@@ -8,12 +8,12 @@ class OPI_Tools {
     private static array $plugins = [];
 
     public static function init(): void {
-        require_once OPITOOLS_PATH . 'includes/class-opi-settings-base.php';
-        require_once OPITOOLS_PATH . 'includes/class-opi-crypto.php';
-        require_once OPITOOLS_PATH . 'includes/class-opi-cron-helper.php';
-        require_once OPITOOLS_PATH . 'includes/class-opi-google-fonts.php';
-        require_once OPITOOLS_PATH . 'includes/class-opi-settings.php';
-        require_once OPITOOLS_PATH . 'includes/class-opi-updater.php';
+        require_once OPI_CORE_PATH . 'includes/class-opi-settings-base.php';
+        require_once OPI_CORE_PATH . 'includes/class-opi-crypto.php';
+        require_once OPI_CORE_PATH . 'includes/class-opi-cron-helper.php';
+        require_once OPI_CORE_PATH . 'includes/class-opi-google-fonts.php';
+        require_once OPI_CORE_PATH . 'includes/class-opi-settings.php';
+        require_once OPI_CORE_PATH . 'includes/class-opi-updater.php';
 
         OPI_Settings::init();
         OPI_Updater::init();
@@ -96,16 +96,16 @@ class OPI_Tools {
 
         wp_enqueue_style(
             'opi-admin',
-            OPITOOLS_URL . 'assets/css/opi-admin.css',
+            OPI_CORE_URL . 'assets/css/opi-admin.css',
             [],
-            OPITOOLS_VERSION
+            OPI_CORE_VERSION
         );
 
         wp_enqueue_script(
             'opi-admin',
-            OPITOOLS_URL . 'assets/js/opi-admin.js',
+            OPI_CORE_URL . 'assets/js/opi-admin.js',
             [ 'jquery' ],
-            OPITOOLS_VERSION,
+            OPI_CORE_VERSION,
             true
         );
 
@@ -137,9 +137,9 @@ class OPI_Tools {
         $view = sanitize_key( $_GET['view'] ?? 'dashboard' );
 
         if ( $view === 'settings' ) {
-            require_once OPITOOLS_PATH . 'includes/views/settings.php';
+            require_once OPI_CORE_PATH . 'includes/views/settings.php';
         } else {
-            require_once OPITOOLS_PATH . 'includes/views/dashboard.php';
+            require_once OPI_CORE_PATH . 'includes/views/dashboard.php';
         }
     }
 

@@ -19,7 +19,7 @@ class OPI_Updater {
     const TOKEN_CONSTANT = 'OPI_GITHUB_TOKEN';
 
     public static function init(): void {
-        self::register( 'opi-core', OPITOOLS_PATH . 'opi-core.php', 'opi-core' );
+        self::register( 'opi-core', OPI_CORE_PATH . 'opi-core.php', 'opi-core' );
     }
 
     /**
