@@ -64,7 +64,7 @@ class OPI_Discord {
         if ( $new_status !== 'publish' || $old_status === 'publish' ) return;
         if ( $post->post_type !== 'post' ) return;
 
-        self::send( $post );
+        OPI_Discord_Queue::enqueue( [ $post->ID ] );
     }
 
     public static function queue_all_posts(): int {
